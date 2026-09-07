@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>政策智库 · 东高垣数字治理工作站</title>
+<meta name="description" content="119 条五级政策文本的结构化数据库与智能分析：检索控制台、3D 政策层级塔、演进时间轴、口径问答生成。">
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/main.css">
+<style>
+/* 页头样式已上收 assets/css/main.css（.page-hero/.grid-bg/.hero-cols/.page-sub） */
+
+/* ================= 检索控制台 ================= */
+.console{padding:34px 34px 28px}
+.console-row{display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+.search-box{flex:1 1 55%;min-width:260px;display:flex;align-items:center;gap:12px;background:rgba(10,22,40,.7);border:1px solid rgba(212,168,75,.35);border-radius:12px;padding:0 18px}
+.search-box input{flex:1;background:none;border:none;outline:none;color:var(--moon);font-size:16px;padding:16px 0;font-family:inherit}
+.search-box input::placeholder{color:#5E7A94}
+.search-box svg{width:20px;height:20px;color:var(--gold);flex-shrink:0}
+.tags{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.tag-group{width:100%;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.tag-glabel{font-size:12px;letter-spacing:.18em;color:#8FA8BF;font-weight:700;min-width:32px}
+.tag{padding:8px 18px;border-radius:var(--r-tag);font-size:13px;letter-spacing:.06em;border:1px solid rgba(212,168,75,.5);color:var(--gold-warm);background:transparent;transition:all .3s}
+.tag:hover{background:rgba(212,168,75,.12)}
+.tag.on{background:var(--gold-grad);color:#23180A;border-color:transparent;font-weight:700}
+.console-stat{margin-top:18px;font-size:12.5px;color:#8FA8BF;letter-spacing:.04em}
+.console-stat b{color:var(--gold-warm);font-family:var(--mono)}
+.results{margin-top:26px;max-height:520px;overflow:auto;border-radius:12px}
+.pitem{padding:16px 20px;border-bottom:1px solid rgba(212,168,75,.12);transition:background .25s}
+.pitem:hover{background:rgba(212,168,75,.06)}
+.pitem .pt{font-size:15px;font-weight:700;color:var(--moon)}
+.pitem .pm{font-size:12px;color:#8FA8BF;margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
+.pitem .pm .lv{color:var(--gold-warm);border:1px solid rgba(212,168,75,.4);border-radius:99px;padding:0 10px;font-size:11px}
+.pitem .ps{font-size:12.5px;color:#9FB4C8;margin-top:6px}
+.results::-webkit-scrollbar{width:8px}.results::-webkit-scrollbar-thumb{background:rgba(212,168,75,.3);border-radius:4px}
+
+/* ================= 3D 政策层级塔 ================= */
+.tower-wrap{height:600px;position:relative;display:flex;align-items:center;justify-content:center}
+.tower-scene{perspective:1300px;width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.tower{position:relative;width:340px;height:340px;transform-style:preserve-3d;transform:rotateX(62deg) rotateZ(-38deg);transition:transform 1s cubic-bezier(.16,1,.3,1)}
+.tower.spin{animation:towerSpin 26s linear infinite}
+@keyframes towerSpin{from{transform:rotateX(62deg) rotateZ(-38deg)}to{transform:rotateX(62deg) rotateZ(322deg)}}
+.platform{
+  position:absolute;left:50%;top:50%;transform-style:preserve-3d;cursor:pointer;
+  border:2px solid rgba(212,168,75,.55);border-radius:14px;
+  background:linear-gradient(135deg,rgba(18,35,58,.9),rgba(212,168,75,.12));
+  box-shadow:0 0 30px rgba(212,168,75,.15),inset 0 0 40px rgba(212,168,75,.06);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  transition:box-shadow .4s,border-color .4s;
+}
+.platform .pn{font-family:var(--serif);font-size:17px;font-weight:800;color:var(--moon);transform:rotateZ(38deg) rotateX(-62deg) translateZ(2px);white-space:nowrap}
+.platform .pc{font-family:var(--mono);font-size:13px;color:var(--gold-warm);transform:rotateZ(38deg) rotateX(-62deg) translateZ(2px)}
+.platform.sel{border-color:var(--gold-warm);box-shadow:0 0 46px rgba(240,215,140,.45),inset 0 0 50px rgba(212,168,75,.16);background:linear-gradient(135deg,rgba(212,168,75,.28),rgba(18,35,58,.9))}
+.layer-dot{position:absolute;width:5px;height:5px;border-radius:50%;background:var(--gold-warm);box-shadow:0 0 10px var(--gold-warm);animation:rise 2.6s linear infinite;opacity:0}
+@keyframes rise{0%{transform:translateY(0);opacity:0}18%{opacity:.95}100%{transform:translateY(-92px);opacity:0}}
+.tower-panel{
+  position:absolute;right:2%;top:50%;transform:translateY(-50%);width:min(400px,44vw);max-height:520px;overflow:auto;
+  padding:26px 26px 20px;z-index:5;
+}
+.tower-panel h4{font-family:var(--serif);font-size:20px;color:var(--gold-warm);margin-bottom:4px}
+.tower-panel .cnt{font-size:12.5px;color:#8FA8BF;margin-bottom:14px}
+.tower-panel .cnt b{color:var(--gold-warm);font-family:var(--mono);font-size:16px}
+.tower-panel .pi{padding:10px 0;border-bottom:1px dashed rgba(212,168,75,.2);font-size:13px}
+.tower-panel .pi .t{color:var(--moon);font-weight:600}
+.tower-panel .pi .m{color:#7E95AB;font-size:11.5px;margin-top:2px}
+.tower-hint{position:absolute;left:2%;bottom:4%;font-size:12px;color:#6E869B;letter-spacing:.1em;z-index:5}
+@media(max-width:900px){.tower-panel{position:relative;right:auto;top:auto;transform:none;width:100%;margin:20px auto 0;max-height:360px}.tower-wrap{height:auto;flex-direction:column;padding:40px 0}.tower-scene{height:480px}.tower-hint{position:static;margin:14px 0 0 4px}}
+
+/* ================= 演进时间轴 ================= */
+.tl{display:flex;gap:0;overflow-x:auto;padding:30px 4px 20px;position:relative}
+.tl::before{content:"";position:absolute;left:0;right:0;top:44px;height:2px;background:linear-gradient(90deg,transparent,rgba(212,168,75,.6),rgba(212,168,75,.6),transparent)}
+.tl-node{flex:1 0 190px;padding:0 14px;cursor:pointer;position:relative;text-align:center}
+.tl-node .dot{width:14px;height:14px;border-radius:50%;border:3px solid var(--gold);background:var(--paper);margin:8px auto 14px;transition:all .3s;position:relative;z-index:2}
+.tl-node.on .dot{background:var(--gold);box-shadow:0 0 16px rgba(212,168,75,.8)}
+.tl-node .yr{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--jade)}
+.tl-node .tt{font-size:13px;font-weight:700;color:var(--ink);margin-top:4px}
+.tl-detail{margin-top:26px;display:none}
+.tl-detail.on{display:block}
+.tl-card{background:var(--jade);border:1px solid rgba(212,168,75,.4);border-radius:var(--r-lg);padding:30px 32px;color:var(--moon)}
+.tl-card h4{font-family:var(--serif);font-size:19px;color:var(--gold-warm);margin-bottom:12px}
+.tl-quote{background:rgba(10,22,40,.75);border-radius:10px;padding:16px 18px;font-size:13.5px;color:#B9C9D8;margin:12px 0}
+.tl-arrow{color:var(--gold);font-size:18px;margin:4px 0 4px 12px}
+.tl-note{border-left:4px solid var(--gold);background:rgba(212,168,75,.08);padding:14px 18px;font-size:13.5px;color:#E8DFC8;border-radius:0 10px 10px 0}
+.tl-note .ai{display:inline-block;font-size:10.5px;letter-spacing:.12em;color:var(--gold-warm);border:1px solid rgba(240,215,140,.5);border-radius:99px;padding:1px 10px;margin-bottom:8px}
+
+/* ================= 12 项重点政策卡 ================= */
+.pol-card{cursor:pointer}
+.pol-card .ic{width:34px;height:34px;color:var(--gold);margin-bottom:14px}
+.pol-card h4{font-family:var(--serif);font-size:18px;font-weight:800;color:var(--moon);line-height:1.45;margin-bottom:10px}
+.pol-card .dir{font-size:13.5px;color:#C6D3E0}
+.pol-card .pts{font-size:13px;color:#8FA8BF;margin-top:10px}
+.pol-card .more{display:inline-block;margin-top:14px;font-size:12.5px;color:var(--gold-warm);letter-spacing:.08em}
+.pol-card .full{display:none;margin-top:14px;padding-top:14px;border-top:1px dashed rgba(212,168,75,.3);font-size:13px;color:#B9C9D8}
+.pol-card.open .full{display:block}
+.pol-card::before{content:"";position:absolute;top:0;left:28px;right:calc(100% - 28px);height:4px;background:var(--gold-grad);border-radius:0 0 4px 4px;transition:right .4s cubic-bezier(.16,1,.3,1)}
+.pol-card:hover::before{right:28px}
+.pol-card:hover{transform:translate(4px,-4px)}
+
+/* ================= 口径问答生成器 ================= */
+.qa-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:30px;align-items:start}
+@media(max-width:900px){.qa-grid{grid-template-columns:1fr}}
+.qa-presets{display:flex;flex-direction:column;gap:10px;margin:18px 0}
+.qa-preset{text-align:left;background:#fff;border:1px solid rgba(18,35,58,.16);border-radius:10px;padding:13px 16px;font-size:13.5px;color:var(--ink);transition:all .25s}
+.qa-preset:hover{border-color:var(--gold);box-shadow:0 6px 18px rgba(18,35,58,.1)}
+.qa-preset.on{border-color:var(--gold);background:#FDF6E3}
+.qa-input{display:flex;gap:10px;margin-top:6px}
+.qa-input input{flex:1;border:1px solid rgba(18,35,58,.25);border-radius:10px;padding:13px 16px;font-size:14px;font-family:inherit;outline:none}
+.qa-input input:focus{border-color:var(--gold)}
+.qa-doc{background:#fff;border:1px solid rgba(18,35,58,.16);border-radius:var(--r-lg);padding:38px 42px;box-shadow:0 16px 44px rgba(18,35,58,.12);color:var(--ink)}
+.qa-doc h4{font-family:var(--serif);text-align:center;font-size:21px;letter-spacing:.14em;color:var(--jade);margin-bottom:6px}
+.qa-doc .qn{text-align:center;font-size:12px;color:var(--ink-soft);margin-bottom:24px;font-family:var(--mono)}
+.qa-doc .row{margin-bottom:16px;font-size:14px}
+.qa-doc .row b{display:block;font-size:12px;letter-spacing:.2em;color:var(--gold);margin-bottom:5px}
+.qa-doc .seal{margin-top:28px;display:flex;justify-content:flex-end}
+.qa-doc .seal span{width:120px;height:120px;border:2px dashed rgba(200,75,63,.55);border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;color:rgba(200,75,63,.8);line-height:1.6;padding:12px}
+.qa-warn{margin-top:14px;font-size:12px;color:var(--cinnabar)}
+@media print{body *{visibility:hidden}#qaPrint,#qaPrint *{visibility:visible}#qaPrint{position:absolute;left:0;top:0;width:100%;padding:10mm}}
+</style>
+</head>
+<body data-page="policy">
+
+<!-- ================= 1. 页头 ================= -->
+<section class="page-hero noise scanlines">
+  <div class="grid-bg"></div>
+  <div class="container hero-cols">
+    <div>
+      <div class="kicker">POLICY INTELLIGENCE</div>
+      <h1 class="display">政策智库</h1>
+      <div class="page-sub">119 条五级政策文本的结构化数据库与智能分析</div>
+      <p class="lead" style="margin-top:20px">覆盖国家、省、市、县、镇村五级政策体系，支持关键词、文号、发布机关三维检索，附政策演进时间轴与口径问答书生成工具。</p>
+      <p class="src">政策库口径：已收录 121 条，剔除 2 条误入库，展示 119 条</p>
+    </div>
+    <div class="glass rv" style="padding:30px;text-align:center">
+      <div style="font-size:12px;letter-spacing:.24em;color:var(--gold-warm);margin-bottom:18px">政策层级塔 · 五级体系</div>
+      <div style="display:flex;flex-direction:column;gap:8px;align-items:center">
+        <div style="width:170px;padding:9px 0;border:1px solid rgba(240,215,140,.6);border-radius:8px;font-size:12.5px;color:var(--gold-warm)">国家级 · 12 条</div>
+        <div style="width:150px;padding:8px 0;border:1px solid rgba(212,168,75,.45);border-radius:8px;font-size:12px;color:#C6D3E0">省级 · 32 条</div>
+        <div style="width:130px;padding:8px 0;border:1px solid rgba(212,168,75,.35);border-radius:8px;font-size:12px;color:#9FB4C8">市级 · 31 条</div>
+        <div style="width:112px;padding:8px 0;border:1px solid rgba(212,168,75,.28);border-radius:8px;font-size:12px;color:#8FA8BF">县级 · 24 条</div>
+        <div style="width:96px;padding:8px 0;border:1px solid rgba(212,168,75,.22);border-radius:8px;font-size:12px;color:#7E95AB">镇村级 · 20 条</div>
+      </div>
+      <a href="#towerSec" style="display:inline-block;margin-top:18px;font-size:12px;color:var(--gold-warm);letter-spacing:.1em">进入 3D 层级塔 ↓</a>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 2. 检索控制台 ================= -->
+<section class="section jade noise" style="padding:80px 0">
+  <div class="container">
+    <div class="glass console rv">
+      <div class="console-row">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+          <input id="q" type="text" placeholder="搜索政策关键词、文号、发布机关……">
+        </div>
+      </div>
+      <div class="tags" id="tags"></div>
+      <div class="console-stat" id="stat"></div>
+      <div class="console-stat" id="srcStat" style="margin-top:6px">数据来源：离线缓存模式</div>
+      <div class="results" id="results"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 3. 3D 政策层级塔 ================= -->
+<section class="section dark noise scanlines" id="towerSec">
+  <div class="container">
+    <div class="section-head rv">
+      <div class="kicker">3D 政策层级塔</div>
+      <h2 class="h-sec">五级政策，一塔贯通</h2>
+      <p class="lead">国家、省、市、县、镇村五级政策以悬浮平台呈现，层间粒子流象征政策传导。点击任一层级，展开该层全部收录文件。</p>
+    </div>
+    <div class="tower-wrap rv">
+      <div class="tower-scene"><div class="tower spin" id="tower"></div></div>
+      <div class="glass tower-panel" id="towerPanel"></div>
+      <div class="tower-hint">◈ 点击平台查看该层级政策清单</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 4. 政策演进时间轴 ================= -->
+<section class="section paper">
+  <div class="container">
+    <div class="section-head rv">
+      <div class="kicker">政策演进</div>
+      <h2 class="h-sec">从整县试点到电价市场化</h2>
+      <p class="lead">五个关键节点，看懂屋顶光伏政策五年演进。点击节点展开政策摘要与智能分析批注。</p>
+    </div>
+    <div class="tl rv" id="tlNodes"></div>
+    <div class="tl-detail" id="tlDetail"></div>
+  </div>
+</section>
+
+<!-- ================= 5. 12 项重点政策 ================= -->
+<section class="section dark noise">
+  <div class="container">
+    <div class="section-head rv">
+      <div class="kicker">重点政策</div>
+      <h2 class="h-sec">12 项重点政策速览</h2>
+      <p class="lead">摘自《光伏村建设手册》附录 C.1，按“核心方向—基层落实要点”整理。点击卡片展开完整要点。</p>
+    </div>
+    <div class="grid-3" id="polCards"></div>
+    <p class="src rv">内容来源：《光伏村建设手册》附录 C.1；政策条款以公开发布的原文为准</p>
+  </div>
+</section>
+
+<!-- ================= 6. 口径问答生成器 ================= -->
+<section class="section paper">
+  <div class="container">
+    <div class="section-head rv">
+      <div class="kicker">交互工具</div>
+      <h2 class="h-sec">政策口径问答书生成器</h2>
+      <p class="lead">按《光伏村建设手册》8.5 节口径问答书模板，将农户与村干部的原话问题转为规范书面答复草稿，供县级部门核实、盖章后下发宣讲。</p>
+    </div>
+    <div class="qa-grid">
+      <div class="rv">
+        <div style="font-size:13px;font-weight:700;color:var(--jade);letter-spacing:.08em">选择常见问题，或输入自定义问题：</div>
+        <div class="qa-presets" id="qaPresets"></div>
+        <div class="qa-input">
+          <input id="qaCustom" type="text" placeholder="例如：屋顶漏雨了找谁修？">
+          <button class="btn btn-gold btn-sm" id="qaGen">生成</button>
+        </div>
+        <p class="qa-warn">提示：生成结果为答复草稿，仅供参考；口径问答书须经县级能源主管部门或发展改革部门核实并盖章后方可作为宣讲依据。</p>
+        <button class="btn btn-ghost btn-sm no-print" style="margin-top:18px;color:var(--gold);border-color:rgba(212,168,75,.55)" onclick="window.print()">打印为 A4 问答书</button>
+      </div>
+      <div class="qa-doc rv" id="qaPrint">
+        <h4>政策口径问答书</h4>
+        <div class="qn" id="qaNo">编号：KL-—————— · 成文日期：　　年　　月　　日 · 状态：草稿</div>
+        <div class="row"><b>问　题</b><span id="qaQ">请先在左侧选择或输入问题。</span></div>
+        <div class="row"><b>答　复</b><span id="qaA">——</span></div>
+        <div class="row"><b>依据文件</b><span id="qaB">——</span></div>
+        <div class="row"><b>适用对象</b><span id="qaT">——</span></div>
+        <div class="seal"><span>答复单位<br>（县级能源主管部门<br>或发展改革部门）<br>盖章处</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/main.js"></script>
+<script>
+(function () {
+  "use strict";
+  var D = window.WS_DATA, policies = D.policies;
+
+  /* ================= 检索控制台（云端政策库优先，失败回退本地缓存；多维标签组合筛选） ================= */
+  /* 4 组标签：同组内单选、组间叠加，再点已选标签可取消（回到“全部”） */
+  var TAG_GROUPS = [
+    { key: "level", label: "级别", tags: ["全部", "国家级", "省级", "市级", "县级", "镇村级"] },
+    { key: "domain", label: "领域", tags: ["全部", "光伏能源", "乡村振兴", "农业农村", "财政金融", "生态环保", "其他"] },
+    { key: "year", label: "年份", tags: ["全部", "2026", "2025", "2024", "2023", "2022 及以前"] },
+    { key: "org", label: "机关", tags: ["全部", "中共中央国务院", "国家部委", "省级机关", "市级机关", "县级机关", "镇村"] }
+  ];
+  var flt = { level: "全部", domain: "全部", year: "全部", org: "全部" }, q = "";
+  var tagsEl = document.getElementById("tags"), resEl = document.getElementById("results"), statEl = document.getElementById("stat");
+  var srcEl = document.getElementById("srcStat");
+  /* 云端行（snake_case）归一化为本地字段（camelCase），保证下游渲染逻辑一致 */
+  function normPolicy(r) {
+    return { id: r.id, level: r.level || "", level5: r.level5 || "", title: r.title || "", org: r.org || "", date: r.date || "", year: r.year || "",
+      docNo: r.doc_no || r.docNo || "", topics: r.topics || [], summary: r.summary || "",
+      applyPoint: r.apply_point || r.applyPoint || "", requirement: r.requirement || "", deadline: r.deadline || "", subsidy: r.subsidy || "" };
+  }
+  var cloudCache = {}, syncToken = 0;
+  /* 云端拉取策略：级别标签决定下发条件并缓存该级别全量；“全部”级别拉一次全库缓存；
+     领域／年份／机关／关键词均为前端组合过滤 */
+  function syncPolicies() {
+    var key = flt.level, token = ++syncToken;
+    if (cloudCache[key]) { policies = cloudCache[key]; render(); return; }
+    if (!window.MG) { render(); return; }
+    if (srcEl) srcEl.textContent = "数据来源：正在连接云端政策库……";
+    MG.wsPolicies(key === "全部" ? {} : { level: key }).then(function (rows) {
+      if (token !== syncToken || key !== flt.level) return;
+      if (rows) {
+        var list = rows.map(normPolicy);
+        cloudCache[key] = list;
+        policies = list;
+        if (srcEl) srcEl.textContent = "数据来源：云端政策库（实时）";
+      } else {
+        policies = D.policies;
+        if (srcEl) srcEl.textContent = "数据来源：离线缓存模式";
+      }
+      render();
+    });
+  }
+  /* 标签渲染与交互：同组单选、再点取消 */
+  function renderTags() {
+    tagsEl.innerHTML = TAG_GROUPS.map(function (g) {
+      return '<div class="tag-group"><span class="tag-glabel">' + g.label + "</span>" +
+        g.tags.map(function (t) {
+          return '<button class="tag' + (flt[g.key] === t ? " on" : "") + '" data-g="' + g.key + '" data-t="' + t + '">' + t + "</button>";
+        }).join("") + "</div>";
+    }).join("");
+  }
+  tagsEl.addEventListener("click", function (e) {
+    var b = e.target.closest(".tag"); if (!b) return;
+    var g = b.getAttribute("data-g"), t = b.getAttribute("data-t");
+    flt[g] = (flt[g] === t && t !== "全部") ? "全部" : t;
+    renderTags();
+    if (g === "level") syncPolicies(); else render();
+  });
+  document.getElementById("q").addEventListener("input", function (e) { q = e.target.value.trim(); render(); });
+  /* 领域归类：依据政策名称＋发文机关关键词，按以下优先级首个命中生效 */
+  function domainOf(p) {
+    var hay = p.title + " " + (p.org || "");
+    if (/光伏|新能源|风电|能源/.test(hay)) return "光伏能源";
+    if (/乡村振兴|脱贫|巩固/.test(hay)) return "乡村振兴";
+    if (/农业|农村|农田|农产品/.test(hay)) return "农业农村";
+    if (/财政|资金|补贴|贷款|贴息/.test(hay)) return "财政金融";
+    if (/生态|环保|环境|碳/.test(hay)) return "生态环保";
+    return "其他";
+  }
+  /* 机关归类：依据 org 字段关键词；均不命中时按 level 兜底 */
+  function orgOf(p) {
+    var o = p.org || "";
+    if (/中共中央|国务院/.test(o)) return "中共中央国务院";
+    if (/国家|部/.test(o)) return "国家部委";
+    if (/镇|乡/.test(o)) return "镇村";
+    if (/县|区/.test(o)) return "县级机关";
+    if (/市/.test(o)) return "市级机关";
+    if (/省/.test(o)) return "省级机关";
+    var fb = { "国家级": "国家部委", "省级": "省级机关", "市级": "市级机关", "县级": "县级机关", "镇村级": "镇村" };
+    return fb[p.level] || "镇村";
+  }
+  /* 年份取值：优先 year 字段，缺失时取 date 前 4 位 */
+  function yearOf(p) { return String(p.year || "").trim() || String(p.date || "").slice(0, 4); }
+  function match(p) {
+    if (flt.level !== "全部" && p.level !== flt.level) return false;
+    if (flt.domain !== "全部" && domainOf(p) !== flt.domain) return false;
+    if (flt.year !== "全部") {
+      var y = yearOf(p);
+      if (flt.year === "2022 及以前") { if (!y || +y > 2022) return false; }
+      else if (y !== flt.year) return false;
+    }
+    if (flt.org !== "全部" && orgOf(p) !== flt.org) return false;
+    if (!q) return true;
+    var hay = (p.title + " " + (p.docNo || "") + " " + (p.org || "") + " " + (p.topics || []).join(" ")).toLowerCase();
+    return q.toLowerCase().split(/\s+/).every(function (w) { return hay.indexOf(w) >= 0; });
+  }
+  function render() {
+    var list = policies.filter(match);
+    var active = TAG_GROUPS.filter(function (g) { return flt[g.key] !== "全部"; })
+      .map(function (g) { return g.label + "：" + flt[g.key]; });
+    statEl.innerHTML = "已收录 <b>" + D.meta.policyTotal + "</b> 条，剔除 <b>" + (D.meta.policyTotal - D.meta.policyShown) + "</b> 条误入库，展示 <b>" + D.policies.length + "</b> 条，覆盖 " + D.meta.yearRange + " 年 · 匹配 <b>" + list.length + "</b> 条" +
+      (active.length ? " 丨 " + active.join(" 丨 ") : "");
+    resEl.innerHTML = list.slice(0, 120).map(function (p) {
+      var y = yearOf(p);
+      return '<div class="pitem"><div class="pt">' + p.title + '</div><div class="pm"><span class="lv">' + p.level + " · " + p.level5 + "</span>" +
+        (y ? '<span class="lv">' + y + " 年</span>" : "") +
+        "<span>" + p.org + "</span><span>" + (p.docNo || "无文号") + "</span><span>" + p.date + '</span></div><div class="ps">' + p.applyPoint + "</div></div>";
+    }).join("") || '<div class="pitem"><div class="pt">未检索到匹配政策，请调整关键词或筛选标签。</div></div>';
+    if (list.length > 120) resEl.innerHTML += '<div class="pitem"><div class="pm">仅显示前 120 条，请增加关键词缩小范围。</div></div>';
+  }
+  renderTags();
+  render();
+  syncPolicies(); /* 首屏先出本地缓存，随后尝试切换云端实时数据 */
+
+  /* ================= 3D 政策层级塔 ================= */
+  var LEVELS = [
+    { k: "国家级", n: "国家级", size: 300 },
+    { k: "省级", n: "省级", size: 262 },
+    { k: "市级", n: "市级", size: 224 },
+    { k: "县级", n: "县级", size: 186 },
+    { k: "镇村级", n: "镇村级", size: 148 }
+  ];
+  /* 各层条数由数据实算，避免硬编码与库脱节 */
+  LEVELS.forEach(function (L) { L.c = policies.filter(function (p) { return p.level === L.k; }).length; });
+  var tower = document.getElementById("tower"), panel = document.getElementById("towerPanel");
+  var GAP = 78;
+  LEVELS.forEach(function (L, i) {
+    var el = document.createElement("div");
+    el.className = "platform";
+    el.style.width = L.size + "px"; el.style.height = L.size + "px";
+    el.style.marginLeft = -L.size / 2 + "px"; el.style.marginTop = -L.size / 2 + "px";
+    el.style.transform = "translateZ(" + ((LEVELS.length - 1 - i) * GAP) + "px)";
+    el.innerHTML = '<span class="pn">' + L.n + '</span><span class="pc">' + L.c + " 条</span>";
+    el.addEventListener("click", function () { selectLevel(L.k, el); });
+    tower.appendChild(el);
+    L.el = el;
+  });
+  /* 层间粒子流 */
+  for (var d = 0; d < 14; d++) {
+    var dot = document.createElement("span");
+    dot.className = "layer-dot";
+    dot.style.left = (38 + Math.random() * 24) + "%";
+    dot.style.top = (30 + Math.random() * 40) + "%";
+    dot.style.animationDelay = (Math.random() * 2.6) + "s";
+    tower.parentElement.appendChild(dot);
+  }
+  tower.addEventListener("mouseenter", function () { tower.classList.remove("spin"); });
+  tower.addEventListener("mouseleave", function () { tower.classList.add("spin"); });
+  function selectLevel(k, el) {
+    LEVELS.forEach(function (L) { L.el.classList.toggle("sel", L.el === el); });
+    var list = policies.filter(function (p) { return p.level === k; })
+      .sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); });
+    panel.innerHTML = "<h4>" + k + "政策</h4>" +
+      '<div class="cnt">收录 <b>' + list.length + "</b> 条 · 占全库 " + (list.length / D.meta.policyShown * 100).toFixed(1) + "%</div>" +
+      list.map(function (p) {
+        return '<div class="pi"><div class="t">' + p.title + '</div><div class="m">' + p.org + " · " + (p.docNo || "无文号") + " · " + p.date + "</div></div>";
+      }).join("");
+    panel.scrollTop = 0;
+  }
+  selectLevel("国家级", LEVELS[0].el);
+
+  /* ================= 演进时间轴 ================= */
+  var TL = D.timeline; /* 时间线数据已迁移至 assets/js/data.js（WS_DATA.timeline） */
+  var tlN = document.getElementById("tlNodes"), tlD = document.getElementById("tlDetail");
+  tlN.innerHTML = TL.map(function (n, i) {
+    return '<div class="tl-node' + (i === 3 ? " on" : "") + '" data-i="' + i + '"><div class="yr">' + n.yr + '</div><div class="dot"></div><div class="tt">' + n.tt + "</div></div>";
+  }).join("");
+  function showTL(i) {
+    var n = TL[i];
+    tlN.querySelectorAll(".tl-node").forEach(function (x, j) { x.classList.toggle("on", j === i); });
+    tlD.classList.add("on");
+    tlD.innerHTML = '<div class="tl-card"><h4>' + n.h + '</h4><div class="tl-quote">' + n.q + '</div><div class="tl-arrow">↓ 智能分析</div><div class="tl-note"><span class="ai">AI 分析批注 · 仅供参考</span><br>' + n.n + "</div></div>";
+  }
+  tlN.addEventListener("click", function (e) { var n = e.target.closest(".tl-node"); if (n) showTL(+n.getAttribute("data-i")); });
+  showTL(3);
+
+  /* ================= 12 项重点政策卡 ================= */
+  var POL = D.policyCards; /* 重点政策卡数据已迁移至 assets/js/data.js（WS_DATA.policyCards） */
+  var pc = document.getElementById("polCards");
+  pc.innerHTML = POL.map(function (p, i) {
+    return '<div class="card pol-card rv" data-i="' + i + '">' +
+      '<svg class="ic" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 3h13l6 6v22H8z"/><path d="M21 3v6h6"/><line x1="12" y1="15" x2="23" y2="15"/><line x1="12" y1="20" x2="23" y2="20"/><line x1="12" y1="25" x2="19" y2="25"/></svg>' +
+      "<h4>" + p[0] + '</h4><div style="font-size:11.5px;color:var(--gold-warm);letter-spacing:.06em;margin-bottom:8px">' + p[1] + '</div>' +
+      '<div class="dir">' + p[2] + '</div><span class="more">查看原文要点 →</span>' +
+      '<div class="full"><b style="color:var(--gold-warm);font-size:12px;letter-spacing:.14em">基层落实要点</b><br>' + p[3] + "</div></div>";
+  }).join("");
+  pc.addEventListener("click", function (e) { var c = e.target.closest(".pol-card"); if (c) c.classList.toggle("open"); });
+  pc.querySelectorAll(".rv").forEach(function (el) { el.classList.add("on"); });
+
+  /* ================= 口径问答生成器 ================= */
+  /* 口径语料 22 条：k 为自定义问题的匹配关键词，命中数最多者作为参照口径 */
+  var QA = [
+    { q: "“531”新政后，我家的租金会不会少？",
+      a: "不会。屋顶租金按合同约定执行，标准为 30 元/块/年（人字坡 15 元/块/年），25 年租期内标准不变；租金与上网电价脱钩，电价市场化改革不影响存量项目农户租金。",
+      b: "《关于深化新能源上网电价市场化改革促进新能源高质量发展的通知》（发改价格〔2025〕136 号）；《中华人民共和国民法典》合同编。",
+      t: "存量项目农户（已并网）", k: ["租金", "会不会少", "30 元", "钱变少"] },
+    { q: "现在新装光伏，电价还按 0.3545 元一度算吗？",
+      a: "不能。“531”新政后，新增项目上网电价通过市场交易形成，0.3545 元/kWh 脱硫煤标杆电价口径仅适用于存量项目。新增项目经济性须按市场化电价重新测算。",
+      b: "《关于深化新能源上网电价市场化改革促进新能源高质量发展的通知》（发改价格〔2025〕136 号）及省级实施方案。",
+      t: "增量项目（新政后新备案）", k: ["电价", "0.3545", "标杆", "一度"] },
+    { q: "已签约但还没并网的项目，按什么政策执行？",
+      a: "过渡期待建项目的结算口径，以县级能源主管部门核实后的书面答复为准；在书面口径下发前，镇、村宣讲一律不得口头承诺电价与补贴标准。",
+      b: "《关于深化新能源上网电价市场化改革促进新能源高质量发展的通知》（发改价格〔2025〕136 号）；《光伏村建设手册》8.5 节口径问答规则。",
+      t: "待建项目（已签约未并网）", k: ["已签约", "待建", "还没并网", "过渡", "未并网"] },
+    { q: "屋顶光伏板漏水了找谁修？",
+      a: "由投资建设方 H 光伏公司（省属国有企业）负责维修，运营方 G 项目运营公司受理工单。农户可通过电表箱电话、热线或村两委转办报修，处置全程以运维工单留痕，办结后 3 日内回访。",
+      b: "《关于进一步组织实施好“千家万户沐光行动”的通知》（国能综通新能〔2025〕44 号）；屋顶租赁合同维修条款。",
+      t: "全体装机农户", k: ["漏", "修", "维修", "报修", "漏水"] },
+    { q: "“零首付、高额返利”的光伏推销可信吗？",
+      a: "不可信，须高度警惕。东高垣村前期有个别小型光伏企业以“零首付安装”“高额返利”为噱头骗取村民身份信息办理贷款，已形成负面教训。正规整村项目农户零出资、不贷款、不担保；凡要求农户提供身份证办卡、签字贷款的，一律拒绝并立即报告村两委。",
+      b: "国能综通新能〔2025〕44 号文件关于规范市场秩序的要求；《光伏村建设手册》宣传动员篇骗局识别口径。",
+      t: "全体农户", k: ["零首付", "返利", "骗", "贷款", "推销", "可信"] },
+    { q: "签约要交押金、手续费吗？",
+      a: "不交。整村分布式光伏入户项目农户零成本参与，不收取任何押金、手续费、保证金。凡以各种名义向农户收费的均属违规，可向镇政府或县发改部门举报。",
+      b: "国能综通新能〔2025〕44 号文件；县级整县推进实施方案。",
+      t: "拟签约农户", k: ["押金", "手续费", "收费", "保证金", "交钱"] },
+    { q: "屋顶租金怎么发、多久发一次？",
+      a: "租金按合同约定周期由企业直接支付到农户本人账户，不经过任何个人账户中转。东高垣村现行口径为按年支付，标准为 30 元/块/年（人字坡 15 元/块/年）；村两委可对照台账核实到户情况，农户发现未按时到账可向村两委或运营方查询。",
+      b: "屋顶租赁合同支付条款；村两委收益台账制度。",
+      t: "全体装机农户", k: ["发钱", "到账", "什么时候发", "支付", "发放"] },
+    { q: "什么是“光伏养老”？",
+      a: "“光伏养老”是本项目从东高垣村实践中提炼的增收机制：农户屋顶空间资源经资本化、契约化路径转化为稳定财产性收入，屋顶租金按 25 年租期、30 元/块/年标准持续支付，户均年租金 1500—2000 元，无需劳动投入、不受务工波动影响，构成农村老年人稳定的补充养老现金流。",
+      b: "课题组机制研究成果；《光伏村建设手册》“光伏养老”专章。",
+      t: "农村老年人及其家庭", k: ["养老", "老人", "光伏养老"] },
+    { q: "合同一般签多少年？到期后怎么办？",
+      a: "租期为 25 年。到期后的处置方式以合同约定为准，一般约定优先续租或由企业无偿拆除并恢复屋顶原状；签约时务必逐条看清期满处置、提前解约与违约责任条款，不清楚的当场问清再签。",
+      b: "屋顶租赁合同期满处置条款；《中华人民共和国民法典》合同编。",
+      t: "拟签约农户", k: ["多少年", "到期", "25 年", "期满", "租期"] },
+    { q: "房子以后要翻修、拆迁，光伏板怎么办？",
+      a: "合同中应明确约定房屋翻修、拆迁情形下的拆装责任与费用承担：由企业负责拆装并承担相应费用，农户须提前书面告知。签约时发现合同没有此类条款的，应要求补充后再签。",
+      b: "屋顶租赁合同变更与解除条款；《光伏村建设手册》签约组织篇。",
+      t: "有建房计划的农户", k: ["翻修", "拆迁", "盖房", "拆", "重建"] },
+    { q: "光伏板有辐射吗？住着安全吗？",
+      a: "光伏组件发电过程不产生有害电磁辐射，安全性有国家标准保障。日常注意保持检修通道畅通、不私拉乱接电线；发现组件异常发热、冒烟、异响，立即远离并通过报修渠道处置。",
+      b: "光伏组件国家强制性安全标准；《光伏村建设手册》运维协同篇安全条款。",
+      t: "全体装机农户", k: ["辐射", "安全", "着火", "冒烟", "危害"] },
+    { q: "光伏板遮挡邻居采光，引起纠纷怎么办？",
+      a: "先由村两委依据村庄规划和相邻关系规定组织调解；调解不成的报镇政府处理，必要时通过法律途径解决。安装前的房屋筛选规则已把遮光因素纳入排除项，源头上减少此类纠纷。",
+      b: "《中华人民共和国民法典》相邻关系规定；《光伏村建设手册》房屋筛选规则与纠纷调处流程。",
+      t: "相关农户、村两委", k: ["遮光", "采光", "邻居", "纠纷", "挡光"] },
+    { q: "怎么查自家电站发了多少电、结了多少钱？",
+      a: "可通过本工作站“数据看板”页面查询发电量与收益数据，也可向运营方 G 项目运营公司或村两委查询结算单据。全部结算数据按月留痕，农户有权随时核对。",
+      b: "村两委数据公开制度；运维工单与结算台账。",
+      t: "全体装机农户", k: ["查", "发电量", "结算", "多少电", "多少钱"] },
+    { q: "想装光伏，但房屋不符合条件怎么办？",
+      a: "房屋筛选规则明确：危房、产权有争议、遮光严重、结构承载不足的不予安装。可通过修缮加固消除安全隐患后申请复评，或向村两委登记候补，待条件具备后按序安排。",
+      b: "《光伏村建设手册》前期摸排篇房屋筛选规则。",
+      t: "未装机农户", k: ["不符合", "危房", "筛选", "候补", "装不了"] },
+    { q: "电网容量满了，还能装吗？",
+      a: "台区容量不足时暂停新增接入，农户可向村两委登记候补排队；待台区消纳能力提升工程完成后，按登记顺序依次安排接入。容量情况以电网企业核实意见为准。",
+      b: "电网企业台区容量核实规则；《光伏村建设手册》施工并网篇。",
+      t: "候补农户", k: ["容量", "电网", "满了", "排队", "消纳"] },
+    { q: "村干部组织签约，怎么操作才规范？",
+      a: "按《光伏村建设手册》流程执行：政策宣讲→意愿摸底→名单公示 7 天→集中签约→留痕归档，重大事项落实“四议两公开”。签约现场须逐户讲清租金标准、租期、维修责任与退出条款，不得代签、不得诱导签字。",
+      b: "《光伏村建设手册》签约组织篇；“四议两公开”工作法。",
+      t: "村两委干部", k: ["签约", "组织", "流程", "公示", "四议两公开"] },
+    { q: "光伏收益在村里怎么分配？",
+      a: "农户屋顶租金全额到户，村集体不得截留。村集体如按约定取得组织协调类收益，必须经“四议两公开”程序决定用途，纳入村务公开，接受村民监督。",
+      b: "村级财务管理制度；“四议两公开”工作法；收益分配监督条款。",
+      t: "村两委、全体村民", k: ["分配", "集体", "收益", "截留"] },
+    { q: "企业要是倒闭、跑路了怎么办？",
+      a: "本项目投资建设方为省属国有企业 H 光伏公司，运营方为 G 项目运营公司，企业资信有基本保障。合同明确运维责任承接与违约救济安排；万一发生经营风险，由县政府统筹处置，农户租金权益依法优先保障。",
+      b: "屋顶租赁合同违约救济条款；县级整县推进实施方案风险处置安排。",
+      t: "全体装机农户", k: ["倒闭", "跑路", "破产", "企业倒"] },
+    { q: "电价改革会影响村集体的收入吗？",
+      a: "存量项目租金与电价脱钩，不受影响。新增项目收益须按市场化电价重新测算，村集体应依据书面测算口径校准预期，不得沿用旧标杆电价对外宣传。",
+      b: "发改价格〔2025〕136 号文件；《光伏村建设手册》8.5 节口径问答规则。",
+      t: "村两委干部", k: ["村集体", "收入", "影响", "改革"] },
+    { q: "村民装了之后可以中途退出吗？",
+      a: "可以依约提前解约，但须按合同约定承担相应责任（一般为拆装与恢复原状费用）。退出前建议向村两委咨询违约责任测算，慎重决定。",
+      b: "屋顶租赁合同解除条款；《光伏村建设手册》明白纸退出提示。",
+      t: "拟退出农户", k: ["退出", "解约", "不装", "反悔"] },
+    { q: "农户拿租金要交税吗？",
+      a: "农户屋顶租金收入的涉税口径，以税务部门的书面答复为准；在书面口径明确前，村宣讲不作口头承诺，企业代扣代缴安排以合同约定与税务规定为准。",
+      b: "待税务部门核实后填写对应文件名与文号（模板见《光伏村建设手册》8.5 节）。",
+      t: "全体装机农户", k: ["税", "交税", "扣税"] },
+    { q: "怎么识别冒充正规企业的骗子？",
+      a: "记住“三查”：一查备案，向县发改部门核实企业是否进入整县推进备案名单；二查合同，与县级备案合同范本逐条比对；三查账户，租金、补贴只走企业公户与农户本人账户。凡进村的推销人员，先报村两委核验身份再接触。",
+      b: "国能综通新能〔2025〕44 号文件；《光伏村建设手册》骗局识别口径。",
+      t: "全体农户", k: ["冒充", "假", "识别", "骗子"] }
+  ];
+  var presets = document.getElementById("qaPresets");
+  presets.innerHTML = QA.map(function (x, i) { return '<button class="qa-preset" data-i="' + i + '">' + x.q + "</button>"; }).join("");
+  var today = new Date();
+  function fillQA(q, a, b, t) {
+    document.getElementById("qaQ").textContent = q;
+    document.getElementById("qaA").textContent = a;
+    document.getElementById("qaB").textContent = b;
+    document.getElementById("qaT").textContent = t;
+    var no = "KL-" + today.getFullYear() + String(today.getMonth() + 1).padStart(2, "0") + String(today.getDate()).padStart(2, "0") + "-001";
+    document.getElementById("qaNo").textContent = "编号：" + no + " · 成文日期：　　年　　月　　日 · 状态：草稿（待核实盖章）";
+  }
+  presets.addEventListener("click", function (e) {
+    var b = e.target.closest(".qa-preset"); if (!b) return;
+    presets.querySelectorAll(".qa-preset").forEach(function (x) { x.classList.toggle("on", x === b); });
+    var x = QA[+b.getAttribute("data-i")];
+    fillQA(x.q, x.a, x.b, x.t);
+  });
+  document.getElementById("qaGen").addEventListener("click", function () {
+    var v = document.getElementById("qaCustom").value.trim();
+    if (!v) return;
+    presets.querySelectorAll(".qa-preset").forEach(function (x) { x.classList.remove("on"); });
+    /* 自定义问题：按各语料的关键词命中数选最优条目，未命中给出明确提示 */
+    var best = null, bestHit = 0;
+    QA.forEach(function (x) {
+      var h = 0;
+      x.k.forEach(function (w) { if (v.indexOf(w) >= 0) h++; });
+      if (h > bestHit) { bestHit = h; best = x; }
+    });
+    if (best) fillQA(v, best.a, best.b, best.t + "（参照口径：" + best.q + "）");
+    else fillQA(v,
+      "未匹配到现成口径。建议先在上方政策库检索关键词核实政策依据，或由村两委转报县级主管部门书面答复；在书面口径下发前，镇、村宣讲不作口头承诺。",
+      "待县级部门核实后填写对应文件名与文号（模板见《光伏村建设手册》8.5 节）。",
+      "待核实后按存量项目 / 增量项目 / 待建项目区分");
+  });
+  fillQA(QA[0].q, QA[0].a, QA[0].b, QA[0].t);
+  presets.querySelector(".qa-preset").classList.add("on");
+})();
+</script>
+</body>
+</html>

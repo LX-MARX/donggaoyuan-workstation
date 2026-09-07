@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>申报助手 · 东高垣数字治理工作站</title>
+<meta name="description" content="62 项可申报项目的智能匹配与流程导航：四条件环形筛选、材料清单、申报日历、材料合并器。">
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/main.css">
+<style>
+/* 页头样式已上收 assets/css/main.css（.page-hero/.grid-bg/.hero-cols/.page-sub） */
+
+/* ================= 3D 环形匹配器 ================= */
+.match-grid{display:grid;grid-template-columns:2fr 3fr;gap:30px;align-items:start}
+@media(max-width:960px){.match-grid{grid-template-columns:1fr}}
+.ring-scene{perspective:1100px;height:300px;display:flex;align-items:center;justify-content:center;position:relative;margin:10px 0 24px}
+.ring{width:250px;height:250px;position:relative;transform-style:preserve-3d;transform:rotateX(66deg)}
+.ring-disc{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(212,168,75,.5);box-shadow:0 0 40px rgba(212,168,75,.15),inset 0 0 60px rgba(212,168,75,.08);animation:ringSpin 22s linear infinite;transform-style:preserve-3d}
+@keyframes ringSpin{from{transform:rotateZ(0)}to{transform:rotateZ(360deg)}}
+.ring-node{position:absolute;width:76px;height:76px;margin:-38px 0 0 -38px;border-radius:50%;background:rgba(18,35,58,.92);border:1.5px solid rgba(240,215,140,.65);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:0 0 24px rgba(212,168,75,.3)}
+.ring-node .rn{font-size:12px;font-weight:700;color:var(--gold-warm);letter-spacing:.06em}
+.ring-node .rv2{font-size:10px;color:#8FA8BF;max-width:66px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.orb{position:absolute;left:50%;top:50%;border-radius:50%;transform:translate(-50%,-58%);
+  background:radial-gradient(circle at 35% 30%,#FFF3D0 0%,var(--gold-warm) 28%,var(--gold) 62%,rgba(212,168,75,.15) 100%);
+  box-shadow:0 0 60px rgba(240,215,140,.65),0 0 120px rgba(212,168,75,.3);transition:width .6s cubic-bezier(.16,1,.3,1),height .6s cubic-bezier(.16,1,.3,1);
+  display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700;color:#23180A;z-index:3}
+.orb-lbl{position:absolute;left:50%;top:50%;transform:translate(-50%,34px);font-size:11px;letter-spacing:.2em;color:var(--gold-warm);z-index:3;white-space:nowrap}
+.ctrl{margin-bottom:20px}
+.ctrl .cl{font-size:12px;letter-spacing:.18em;color:var(--gold-warm);font-weight:700;margin-bottom:10px}
+.ctrl select{width:100%;background:rgba(10,22,40,.7);border:1px solid rgba(212,168,75,.35);border-radius:10px;color:var(--moon);padding:12px 14px;font-size:14px;font-family:inherit;outline:none}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:7px 14px;border-radius:99px;font-size:12.5px;border:1px solid rgba(212,168,75,.45);color:var(--gold-warm);background:transparent;transition:all .25s}
+.chip.on{background:var(--gold-grad);color:#23180A;border-color:transparent;font-weight:700}
+.range-wrap{padding:6px 2px 0}
+.range-val{font-family:var(--mono);color:var(--gold-warm);font-size:14px;margin-top:6px}
+input[type=range]{width:100%;accent-color:var(--gold)}
+.res-head{display:flex;align-items:baseline;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+.res-head .x{font-family:var(--mono);font-size:clamp(30px,3.4vw,44px);font-weight:700;color:var(--gold);text-shadow:0 0 20px rgba(212,168,75,.3)}
+.res-list{display:flex;flex-direction:column;gap:14px;max-height:720px;overflow:auto;padding-right:6px}
+.res-list::-webkit-scrollbar{width:8px}.res-list::-webkit-scrollbar-thumb{background:rgba(18,35,58,.2);border-radius:4px}
+.res-item{background:#fff;border:1px solid rgba(18,35,58,.14);border-radius:14px;padding:18px 22px;cursor:pointer;transition:all .3s}
+.res-item:hover{border-color:rgba(212,168,75,.65);box-shadow:0 10px 26px rgba(18,35,58,.1)}
+.res-item .rt{display:flex;justify-content:space-between;gap:14px;align-items:baseline;flex-wrap:wrap}
+.res-item .rn{font-size:16px;font-weight:800;color:#12233A}
+.pno{display:inline-block;background:linear-gradient(135deg,#D4A84B,#B8912F);color:#23180A;border-radius:6px;padding:2px 10px;font-size:13px;font-weight:800;margin-right:8px}
+.res-item .sc{font-family:var(--mono);font-size:13px;color:var(--gold);font-weight:700;white-space:nowrap}
+.res-item .rm{font-size:12.5px;color:#42566C;margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
+.meter{height:5px;background:rgba(18,35,58,.1);border-radius:3px;margin-top:10px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--gold-grad);border-radius:3px}
+
+/* ================= 手风琴详情 ================= */
+.acc-detail{display:none;margin-top:14px;border-top:1px dashed rgba(18,35,58,.2);padding-top:16px}
+.res-item.open .acc-detail{display:block}
+.acc-sec{margin-bottom:16px}
+.acc-sec h6{font-size:11.5px;letter-spacing:.2em;color:#12233A;margin-bottom:8px;font-weight:800}
+.acc-sec p,.acc-sec li{font-size:13px;color:#33465C}
+.acc-sec ul{list-style:none}
+.acc-sec li{padding:4px 0 4px 18px;position:relative}
+.acc-sec li::before{content:"▸";position:absolute;left:0;color:var(--gold)}
+.check{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;cursor:pointer;user-select:none}
+.check input{accent-color:var(--gold)}
+.flow{display:flex;gap:0;flex-wrap:wrap;margin-top:6px}
+.flow .st{flex:1;min-width:110px;text-align:center;position:relative;padding:14px 8px 0;font-size:12px;color:var(--ink-soft)}
+.flow .st::before{content:"";display:block;width:12px;height:12px;border-radius:50%;background:var(--gold);margin:0 auto 8px;box-shadow:0 0 10px rgba(212,168,75,.5)}
+.flow .st::after{content:"";position:absolute;top:19px;left:calc(50% + 12px);right:calc(-50% + 12px);height:2px;background:rgba(212,168,75,.4)}
+.flow .st:last-child::after{display:none}
+.fav-btn{margin-top:8px}
+
+/* ================= 申报日历 ================= */
+.cal-head{display:flex;align-items:center;gap:18px;margin-bottom:20px}
+.cal-head .ym{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--jade)}
+.cal-nav{background:#fff;border:1px solid rgba(18,35,58,.2);border-radius:8px;padding:6px 14px;font-size:14px;color:var(--jade)}
+.cal-nav:hover{border-color:var(--gold)}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal .dw{text-align:center;font-size:11px;letter-spacing:.14em;color:var(--ink-soft);padding:6px 0}
+.cal .day{background:#fff;border:1px solid rgba(18,35,58,.12);border-radius:10px;min-height:86px;padding:8px;font-size:12px;color:var(--ink);position:relative;transition:border-color .25s}
+.cal .day:hover{border-color:rgba(212,168,75,.6)}
+.cal .day.mute{opacity:.35}
+.cal .day .dn{font-family:var(--mono);font-weight:700;font-size:13px}
+.cal .day.today{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+.cal .ev{display:block;margin-top:5px;font-size:10.5px;line-height:1.45;padding:2px 6px;border-radius:5px;background:rgba(212,168,75,.15);color:#7A5B16;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cal .ev.red{background:rgba(200,75,63,.14);color:var(--cinnabar);font-weight:700}
+.cal-note{margin-top:16px;font-size:12.5px;color:var(--ink-soft)}
+
+/* ================= 材料合并器 ================= */
+.merger-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:30px;align-items:start}
+@media(max-width:900px){.merger-grid{grid-template-columns:1fr}}
+.fav-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px;background:rgba(10,22,40,.6);border:1px solid rgba(212,168,75,.22);border-radius:10px;margin-bottom:10px;font-size:13.5px}
+.fav-item button{background:none;border:none;color:var(--cinnabar);font-size:16px}
+.mat-row{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid rgba(212,168,75,.12);font-size:13.5px}
+.mat-row .mn{flex:1;color:var(--moon)}
+.mat-row select{background:rgba(10,22,40,.8);border:1px solid rgba(212,168,75,.35);border-radius:8px;color:var(--gold-warm);padding:5px 10px;font-size:12px;font-family:inherit}
+.merger-actions{display:flex;gap:12px;margin-top:18px;flex-wrap:wrap}
+
+/* ================= 到账周期提示卡 ================= */
+.cycle-card .cy{font-family:var(--serif);font-size:18px;font-weight:800;color:var(--jade);margin-bottom:8px}
+.cycle-card .cd{font-size:13px;color:var(--ink-soft)}
+.cycle-card .tag2{display:inline-block;margin-top:12px;font-size:11.5px;letter-spacing:.08em;color:var(--gold);border:1px solid rgba(212,168,75,.5);border-radius:99px;padding:3px 12px}
+</style>
+</head>
+<body data-page="apply">
+
+<!-- ================= 1. 页头 ================= -->
+<section class="page-hero noise scanlines">
+  <div class="grid-bg"></div>
+  <div class="container hero-cols">
+    <div>
+      <div class="kicker">APPLICATION ASSISTANT</div>
+      <h1 class="display">申报助手</h1>
+      <div class="page-sub">62 项可申报项目的智能匹配与流程导航</div>
+      <p class="lead" style="margin-top:20px">按申报主体、村庄特征、需求领域、资金规模四个条件匹配可申报项目，自动生成材料清单、申报流程与日历提醒。</p>
+      <p class="src">项目库口径：62 项可申报项目，源自五级政策库梳理</p>
+    </div>
+    <div class="glass rv" style="padding:30px;text-align:center">
+      <div style="font-size:12px;letter-spacing:.24em;color:var(--gold-warm);margin-bottom:16px">四条件环形匹配</div>
+      <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap">
+        <span style="border:1px solid rgba(240,215,140,.55);border-radius:99px;padding:7px 16px;font-size:12px;color:var(--gold-warm)">申报主体</span>
+        <span style="border:1px solid rgba(212,168,75,.4);border-radius:99px;padding:7px 16px;font-size:12px;color:#C6D3E0">村庄特征</span>
+        <span style="border:1px solid rgba(212,168,75,.4);border-radius:99px;padding:7px 16px;font-size:12px;color:#C6D3E0">需求领域</span>
+        <span style="border:1px solid rgba(212,168,75,.4);border-radius:99px;padding:7px 16px;font-size:12px;color:#C6D3E0">资金规模</span>
+      </div>
+      <a href="#matcher" style="display:inline-block;margin-top:18px;font-size:12px;color:var(--gold-warm);letter-spacing:.1em">进入智能匹配器 ↓</a>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 2. 智能匹配器 ================= -->
+<section class="section jade noise" id="matcher" style="padding:90px 0">
+  <div class="container">
+    <div class="section-head rv">
+      <div class="kicker">智能匹配器</div>
+      <h2 class="h-sec">四个条件，筛出能报的项目</h2>
+    </div>
+    <div class="match-grid">
+      <div class="glass rv" style="padding:30px">
+        <div class="ring-scene">
+          <div class="ring"><div class="ring-disc" id="ringDisc"></div></div>
+          <div class="orb" id="orb" style="width:84px;height:84px;font-size:22px">62</div>
+          <div class="orb-lbl">匹配项目（项）</div>
+        </div>
+        <div class="ctrl"><div class="cl">申报主体</div>
+          <select id="cRole">
+            <option value="">不限</option><option>县政府</option><option>镇政府</option><option>村两委</option><option>企业</option><option>合作社</option>
+          </select>
+        </div>
+        <div class="ctrl"><div class="cl">村庄特征（可多选）</div>
+          <div class="chips" id="cFeat">
+            <button class="chip">脱贫村</button><button class="chip">一般村</button><button class="chip">示范村</button><button class="chip">民族村</button><button class="chip">革命老区村</button>
+          </div>
+        </div>
+        <div class="ctrl"><div class="cl">需求领域</div>
+          <select id="cType">
+            <option value="">不限</option><option>基础设施</option><option>产业发展</option><option>生态环保</option><option>社会治理</option><option>文化旅游</option><option>清洁能源专项</option><option>乡村振兴衔接资金</option>
+          </select>
+        </div>
+        <div class="ctrl"><div class="cl">资金规模</div>
+          <div class="range-wrap">
+            <input type="range" id="cFund" min="0" max="4" step="1" value="0">
+            <div class="range-val" id="cFundVal">不限</div>
+          </div>
+        </div>
+      </div>
+      <div class="rv">
+        <div class="res-head"><span class="x" id="resX">62</span><span style="font-size:13px;color:#8FA8BF">匹配到的可申报项目（按匹配度排序）</span><span id="applySrc" style="font-size:12px;color:#5E7A94;width:100%">数据来源：离线缓存模式</span></div>
+        <div class="res-list" id="resList"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 3. 申报日历 ================= -->
+<section class="section paper" id="calendar">
+  <div class="container">
+    <div class="section-head rv">
+      <div class="kicker">申报日历</div>
+      <h2 class="h-sec">收藏项目的截止窗口，一月一屏</h2>
+      <p class="lead">月历视图展示“我的申报计划”中项目的申报窗口；30 天内到期的以红色标注。季度窗口项目按下一季度末标注。</p>
+    </div>
+    <div class="rv">
+      <div class="cal-head">
+        <button class="cal-nav" id="calPrev">← 上月</button>
+        <span class="ym" id="calYM"></span>
+        <button class="cal-nav" id="calNext">下月 →</button>
+        <span style="font-size:12px;color:var(--ink-soft)">图例：<span style="color:#7A5B16">■ 申报窗口</span>　<span style="color:var(--cinnabar)">■ 30 天内到期</span></span>
+      </div>
+      <div class="cal" id="calGrid"></div>
+      <p class="cal-note" id="calNote"></p>
+      <p class="cal-note">日历仅标注季度集中申报窗口；常年申报项目详见列表，可随时办理。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 4. 材料合并器 ================= -->
+<section class="section dark noise">
+  <div class="container">
+    <div class="section-head rv">
+      <div class="kicker">材料合并器</div>
+      <h2 class="h-sec">多个项目，一份总清单</h2>
+      <p class="lead">将“我的申报计划”中各项目所需材料自动去重合并，逐项标注准备状态，可打印或导出 CSV 对照筹备。</p>
+    </div>
+    <div class="merger-grid">
+      <div class="rv">
+        <h3 class="h-sub" style="margin-top:0">我的申报计划</h3>
+        <div id="favList"></div>
+      </div>
+      <div class="glass rv" style="padding:28px" id="matCard">
+        <h3 class="h-sub" style="margin-top:0;color:var(--gold-warm)">合并材料清单</h3>
+        <div id="matList"></div>
+        <div class="merger-actions no-print">
+          <button class="btn btn-gold btn-sm" id="matPrint">打印清单</button>
+          <button class="btn btn-ghost btn-sm" id="matCSV">导出 CSV</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 5. 到账周期提示 ================= -->
+<section class="section paper">
+  <div class="container">
+    <div class="section-head rv">
+      <div class="kicker">到账周期与竞争强度</div>
+      <h2 class="h-sec">申报之前，先校准预期</h2>
+    </div>
+    <div class="grid-3">
+      <div class="card cycle-card rv">
+        <div class="cy">乡村振兴衔接资金</div>
+        <p class="cd">按年度下达分配结果（参见陕农公告〔2025〕99 号公告口径）。从申报到资金到账的平均周期，本地统计样本不足。</p>
+        <span class="tag2">到账周期：数据收集中，持续更新</span>
+      </div>
+      <div class="card cycle-card rv">
+        <div class="cy">清洁能源与光伏专项</div>
+        <p class="cd">“531”新政后新增项目上网电价市场化形成，项目收益测算与审批口径均处调整期，建议以县级发改部门书面答复为准。</p>
+        <span class="tag2">竞争强度：数据收集中，持续更新</span>
+      </div>
+      <div class="card cycle-card rv">
+        <div class="cy">基础设施与产业配套</div>
+        <p class="cd">多数项目为常年申报、按批次评审。东高垣村所在区域 2024—2026 年申报获批的对比统计尚在整理。</p>
+        <span class="tag2">获批率对比：数据收集中，持续更新</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/main.js"></script>
+<script>
+(function () {
+  "use strict";
+  var D = window.WS_DATA, projects = D.projects;
+  var FUND_LABELS = ["不限", "100万以下", "100—500万元", "500—2000万元", "2000万元以上"];
+  var state = { role: "", feats: [], type: "", fund: 0 };
+
+  /* ---------- 环形上的四条件节点 ---------- */
+  var disc = document.getElementById("ringDisc");
+  var NODES = [["主体", "不限"], ["特征", "不限"], ["领域", "不限"], ["资金", "不限"]];
+  NODES.forEach(function (n, i) {
+    var el = document.createElement("div");
+    el.className = "ring-node"; el.id = "rn" + i;
+    var a = i * 90 - 90, rad = a * Math.PI / 180, R = 125;
+    el.style.left = (125 + Math.cos(rad) * R) + "px";
+    el.style.top = (125 + Math.sin(rad) * R) + "px";
+    el.innerHTML = '<span class="rn">' + n[0] + '</span><span class="rv2">' + n[1] + "</span>";
+    disc.appendChild(el);
+  });
+  function setNode(i, v) { document.querySelector("#rn" + i + " .rv2").textContent = v || "不限"; }
+
+  /* ---------- 匹配逻辑：主体/领域/资金为硬过滤，村庄特征决定排序 ---------- */
+  function score(p) {
+    if (p.expired) return { s: 0, hard: false }; // 已过申报期项目不再展示
+    var s = 40, hard = true;
+    /* 主体（硬条件）：主体不符的项目直接剔除 */
+    if (state.role) {
+      var ok = false, r5 = p.roles5 || [];
+      if (state.role === "县政府") ok = p.level === "国家级" || p.level === "市级" || r5.indexOf("村两委") >= 0;
+      else if (state.role === "镇政府") ok = p.level === "县级";
+      else if (state.role === "村两委") ok = r5.indexOf("村两委") >= 0;
+      else if (state.role === "企业") ok = r5.indexOf("企业") >= 0;
+      else if (state.role === "合作社") ok = r5.indexOf("村两委") >= 0 || r5.indexOf("农户") >= 0;
+      if (ok) s += 16; else hard = false;
+    } else s += 10;
+    /* 领域（硬条件） */
+    if (state.type) {
+      var tk = false, hay = p.name + p.basis + (p.subsidy || "");
+      if (state.type === "清洁能源专项") tk = /光伏|新能源|风电|驭风|能源/.test(hay);
+      else if (state.type === "乡村振兴衔接资金") tk = !!p.link; // 数据层逐条标注的衔接资金适用项目
+      else tk = p.type5 === state.type;
+      if (tk) s += 20; else hard = false;
+    } else s += 10;
+    /* 资金（硬条件）：按数据层资金档位过滤 */
+    if (state.fund > 0) {
+      if (p.fundTier === FUND_LABELS[state.fund]) s += 12; else hard = false;
+    } else s += 6;
+    /* 村庄特征（软条件）：命中的特征越多排序越靠前 */
+    if (state.feats.length) {
+      var hit = state.feats.filter(function (f) { return (p.feats || []).indexOf(f) >= 0; }).length;
+      s += Math.min(hit * 8, 24);
+    } else s += 6;
+    return { s: Math.min(Math.round(s), 100), hard: hard };
+  }
+  var orb = document.getElementById("orb"), resX = document.getElementById("resX"), resList = document.getElementById("resList");
+  function render() {
+    var arr = projects.map(function (p) { var r = score(p); return { p: p, s: r.s, hard: r.hard }; })
+      .filter(function (x) { return x.hard; })
+      .sort(function (a, b) { return b.s - a.s; });
+    orb.textContent = arr.length;
+    var sz = Math.min(60 + arr.length * 1.6, 170);
+    orb.style.width = sz + "px"; orb.style.height = sz + "px";
+    resX.textContent = arr.length;
+    resList.innerHTML = arr.map(function (x, i) {
+      var p = x.p;
+      return '<div class="res-item" data-no="' + p.no + '">' +
+        '<div class="rt"><span class="rt-l"><span class="pno">No.' + String(p.no).padStart(2, "0") + '</span><span class="rn">' + p.name + '</span></span><span class="sc">匹配度 ' + x.s + '%</span></div>' +
+        '<div class="rm"><span>主管：' + p.dept + '</span><span>资金：' + (p.subsidy || "未标注") + '</span><span>窗口：' + (p.window || p.deadline) + '</span></div>' +
+        '<div class="meter"><i style="width:' + x.s + '%"></i></div>' +
+        '<div class="acc-detail">' +
+          '<div class="acc-sec"><h6>政策依据</h6><p>' + p.basis + '（' + p.level + '）</p></div>' +
+          '<div class="acc-sec"><h6>申报条件自检（逐项勾选）</h6>' +
+            p.conditions.split(/[、；;]/).filter(Boolean).map(function (c) { return '<label class="check"><input type="checkbox">' + c + "</label>"; }).join("") + "</div>" +
+          '<div class="acc-sec"><h6>所需材料清单</h6><ul>' +
+            p.materials.split(/(?=[①②③④⑤⑥⑦⑧⑨])/).filter(Boolean).map(function (m) { return "<li>" + m + "</li>"; }).join("") + "</ul></div>" +
+          '<div class="acc-sec"><h6>申报流程（建议周期）</h6><div class="flow">' +
+            ["材料准备", "部门受理", "评审公示", "下达批复"].map(function (st) { return '<div class="st">' + st + "</div>"; }).join("") + "</div></div>" +
+          '<button class="btn btn-ghost btn-sm fav-btn" style="color:var(--gold);border-color:rgba(212,168,75,.55)">' +
+            (window.WS.fav.has(p.no) ? "★ 已在申报计划（点击移除）" : "☆ 加入我的申报计划") + "</button>" +
+        "</div></div>";
+    }).join("") || '<div class="res-item"><div class="rn">当前条件下暂无匹配项目，请放宽筛选条件。</div></div>';
+  }
+  resList.addEventListener("click", function (e) {
+    var favBtn = e.target.closest(".fav-btn");
+    var item = e.target.closest(".res-item");
+    if (favBtn && item) {
+      e.stopPropagation();
+      var no = +item.getAttribute("data-no");
+      var on = window.WS.fav.toggle(no);
+      favBtn.textContent = on ? "★ 已在申报计划（点击移除）" : "☆ 加入我的申报计划";
+      renderFavs(); renderCal();
+      return;
+    }
+    if (item && !e.target.closest(".check")) item.classList.toggle("open");
+  });
+
+  /* ---------- 云端项目库同步（库优先＋本地兜底，打分排序逻辑不变） ---------- */
+  var TYPE5 = ["基础设施", "产业发展", "生态环保", "社会治理", "文化旅游"];
+  var applySrc = document.getElementById("applySrc");
+  var syncToken = 0;
+  /* 云端行（snake_case）归一化为本地字段（camelCase），保证打分与渲染逻辑一致 */
+  function normProject(r) {
+    return { no: r.no, name: r.name || "", dept: r.dept || "", deadline: r.deadline || "", subsidy: r.subsidy || "",
+      materials: r.materials || "", conditions: r.conditions || "", basis: r.basis || "", roles: r.roles || [],
+      type: r.type || "", level: r.level || "", type5: r.type5 || "", roles5: r.roles5 || [],
+      window: r.window || "", expired: !!r.expired, feats: r.feats || [], fundTier: r.fund_tier || r.fundTier || "", link: r.link };
+  }
+  function syncProjects() {
+    var token = ++syncToken;
+    if (!window.MG) return;
+    if (applySrc) applySrc.textContent = "数据来源：正在连接云端项目库……";
+    /* 按现有筛选维度映射云端查询条件：领域为五大类时下发 type5，资金档下发 fundTier；
+       特殊领域（清洁能源专项／乡村振兴衔接资金）与主体、村庄特征无对应列，仍由前端打分过滤 */
+    var f = {};
+    if (TYPE5.indexOf(state.type) >= 0) f.type5 = state.type;
+    if (state.fund > 0) f.fundTier = FUND_LABELS[state.fund];
+    MG.wsProjects(f).then(function (rows) {
+      if (token !== syncToken) return;
+      if (rows) {
+        projects = rows.map(normProject);
+        if (applySrc) applySrc.textContent = "数据来源：云端项目库（实时）";
+      } else {
+        projects = D.projects;
+        if (applySrc) applySrc.textContent = "数据来源：离线缓存模式";
+      }
+      render(); renderCal(); renderFavs();
+    });
+  }
+
+  /* ---------- 控件联动 ---------- */
+  document.getElementById("cRole").addEventListener("change", function (e) { state.role = e.target.value; setNode(0, state.role); syncProjects(); });
+  document.getElementById("cType").addEventListener("change", function (e) { state.type = e.target.value; setNode(2, state.type); syncProjects(); });
+  document.getElementById("cFeat").addEventListener("click", function (e) {
+    var c = e.target.closest(".chip"); if (!c) return;
+    c.classList.toggle("on");
+    state.feats = Array.prototype.map.call(document.querySelectorAll("#cFeat .chip.on"), function (x) { return x.textContent; });
+    setNode(1, state.feats.length ? state.feats.length + " 项" : "");
+    syncProjects();
+  });
+  document.getElementById("cFund").addEventListener("input", function (e) {
+    state.fund = +e.target.value;
+    document.getElementById("cFundVal").textContent = FUND_LABELS[state.fund];
+    setNode(3, state.fund ? FUND_LABELS[state.fund] : "");
+    syncProjects();
+  });
+
+  /* ---------- 申报日历 ---------- */
+  var calDate = new Date(); calDate.setDate(1);
+  function projWindowDate(p, base) {
+    if (p.window === "季度窗口") {
+      var d = new Date(base.getFullYear(), base.getMonth() + 1, 1);
+      var qEndMonth = Math.ceil((d.getMonth() + 1) / 3) * 3;
+      return new Date(d.getFullYear(), qEndMonth, 0); /* 下一季度末 */
+    }
+    return null;
+  }
+  function renderCal() {
+    var y = calDate.getFullYear(), m = calDate.getMonth();
+    document.getElementById("calYM").textContent = y + " 年 " + (m + 1) + " 月";
+    var favs = window.WS.fav.all();
+    var favProjects = projects.filter(function (p) { return favs.indexOf(p.no) >= 0; });
+    var events = {};
+    var undated = 0;
+    favProjects.forEach(function (p) {
+      var d = projWindowDate(p, calDate);
+      if (d && d.getFullYear() === y && d.getMonth() === m) {
+        var k = d.getDate();
+        (events[k] = events[k] || []).push(p);
+      } else if (!d) undated++;
+    });
+    var first = new Date(y, m, 1).getDay(), days = new Date(y, m + 1, 0).getDate();
+    var today = new Date();
+    var html = ["一", "二", "三", "四", "五", "六", "日"].map(function (d) { return '<div class="dw">周' + d + "</div>"; }).join("");
+    var lead = (first + 6) % 7;
+    for (var i = 0; i < lead; i++) html += '<div class="day mute"></div>';
+    for (var dd = 1; dd <= days; dd++) {
+      var isToday = today.getFullYear() === y && today.getMonth() === m && today.getDate() === dd;
+      html += '<div class="day' + (isToday ? " today" : "") + '"><span class="dn">' + dd + "</span>";
+      (events[dd] || []).forEach(function (p) {
+        var diff = Math.floor((new Date(y, m, dd) - today) / 86400000);
+        var red = diff >= 0 && diff <= 30;
+        html += '<span class="ev' + (red ? " red" : "") + '" title="' + p.name + "（" + (p.window || p.deadline) + '）">' + p.name + "</span>";
+      });
+      html += "</div>";
+    }
+    document.getElementById("calGrid").innerHTML = html;
+    var note = favProjects.length === 0
+      ? "尚未收藏项目。在上方匹配结果中点击“☆ 加入我的申报计划”，截止窗口将在此自动标注。"
+      : "已收藏 " + favProjects.length + " 项，其中 " + undated + " 项为常年申报（无固定截止日，不占用日历）；具体窗口以主管部门当年公告为准。";
+    document.getElementById("calNote").textContent = note;
+  }
+  document.getElementById("calPrev").addEventListener("click", function () { calDate.setMonth(calDate.getMonth() - 1); renderCal(); });
+  document.getElementById("calNext").addEventListener("click", function () { calDate.setMonth(calDate.getMonth() + 1); renderCal(); });
+
+  /* ---------- 材料合并器 ---------- */
+  var MAT_STATUS = ["待准备", "已有", "需盖章", "需公证"];
+  /* 准备状态持久化：按材料名存入 localStorage，收藏变动后不再重置 */
+  var matStatus = {
+    key: "ws_mat_status",
+    all: function () { try { return JSON.parse(localStorage.getItem(this.key)) || {}; } catch (e) { return {}; } },
+    set: function (name, v) { var m = this.all(); m[name] = v; localStorage.setItem(this.key, JSON.stringify(m)); },
+    get: function (name) { return this.all()[name] || MAT_STATUS[0]; }
+  };
+  function renderFavs() {
+    var favs = window.WS.fav.all();
+    var favProjects = projects.filter(function (p) { return favs.indexOf(p.no) >= 0; });
+    document.getElementById("favList").innerHTML = favProjects.length
+      ? favProjects.map(function (p) {
+          return '<div class="fav-item"><span>' + p.name + '<br><small style="color:#8FA8BF">' + p.dept + "</small></span>" +
+            '<button data-rm="' + p.no + '" title="移除">×</button></div>';
+        }).join("")
+      : '<div class="fav-item"><span style="color:#8FA8BF">暂无收藏。请在匹配结果中加入申报计划。</span></div>';
+    /* 材料去重合并 */
+    var seen = {}, list = [];
+    favProjects.forEach(function (p) {
+      p.materials.split(/(?=[①②③④⑤⑥⑦⑧⑨])/).filter(Boolean).forEach(function (m) {
+        var name = m.replace(/^[①②③④⑤⑥⑦⑧⑨]\s*/, "").trim();
+        if (!seen[name]) { seen[name] = true; list.push(name); }
+      });
+    });
+    document.getElementById("matList").innerHTML = list.length
+      ? list.map(function (m, i) {
+          var cur = matStatus.get(m);
+          return '<div class="mat-row"><span class="mn">' + m + '</span>' +
+            '<select data-mi="' + i + '" data-mname="' + m + '">' +
+            MAT_STATUS.map(function (s) { return s === cur ? '<option selected>' + s + "</option>" : "<option>" + s + "</option>"; }).join("") +
+            "</select></div>";
+        }).join("")
+      : '<div class="mat-row"><span class="mn" style="color:#8FA8BF">收藏项目后自动生成去重材料清单。</span></div>';
+  }
+  document.getElementById("favList").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-rm]"); if (!b) return;
+    window.WS.fav.toggle(+b.getAttribute("data-rm"));
+    renderFavs(); renderCal(); render();
+  });
+  document.getElementById("matPrint").addEventListener("click", function () {
+    window.WS.printZone("#matCard", "申报材料合并清单");
+  });
+  document.getElementById("matList").addEventListener("change", function (e) {
+    var sel = e.target.closest("select[data-mname]");
+    if (sel) matStatus.set(sel.getAttribute("data-mname"), sel.value);
+  });
+  document.getElementById("matCSV").addEventListener("click", function () {
+    var rows = [["材料名称", "准备状态"]];
+    document.querySelectorAll("#matList .mat-row").forEach(function (r) {
+      var sel = r.querySelector("select");
+      if (sel) rows.push([r.querySelector(".mn").textContent, sel.value]);
+    });
+    window.WS.exportCSV("申报材料合并清单.csv", rows);
+  });
+
+  render(); renderCal(); renderFavs();
+  syncProjects(); /* 首屏先出本地缓存，随后尝试切换云端实时数据 */
+})();
+</script>
+</body>
+</html>
