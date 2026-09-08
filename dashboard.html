@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数据看板 · 东高垣数字治理工作站</title>
+<meta name="description" content="大荔县（含东高垣村）光伏运营与治理数据可视化：核心指标、3D 数据地形、三级运维状态、发电量趋势、客诉分析。">
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/main.css">
+<style>
+/* 页头样式已上收 assets/css/main.css（.page-hero/.grid-bg/.hero-cols/.page-sub） */
+.mini-kpis{display:flex;gap:14px}
+.mini-kpi{flex:1;padding:18px 16px;text-align:center}
+.mini-kpi .v{font-family:var(--mono);font-size:24px;font-weight:700;color:var(--gold-warm)}
+.mini-kpi .l{font-size:11px;letter-spacing:.14em;color:#8FA8BF;margin-top:4px}
+
+/* ================= KPI 玻璃卡 ================= */
+.kpi-card{padding:28px 26px}
+.kpi-card .kl{font-size:12px;letter-spacing:.2em;color:#8FA8BF}
+.kpi-card .kv{font-family:var(--mono);font-size:clamp(34px,3.4vw,52px);font-weight:700;color:var(--gold-warm);text-shadow:0 0 26px rgba(240,215,140,.4);line-height:1.2;margin:8px 0 2px}
+.kpi-card .kv i{font-style:normal;font-size:.42em;color:var(--gold);margin-left:6px;letter-spacing:.05em}
+
+/* ================= 3D 地形 ================= */
+.terrain-wrap{position:relative;height:600px;border-radius:var(--r-lg);overflow:hidden;background:linear-gradient(180deg,#0E1D33,var(--abyss));border:1px solid rgba(18,35,58,.14);cursor:grab}
+.terrain-wrap:active{cursor:grabbing}
+#terrain{width:100%;height:100%;display:block}
+.terrain-card{position:absolute;pointer-events:none;padding:14px 18px;min-width:180px;display:none;z-index:5;
+  background:rgba(18,35,58,.78);backdrop-filter:blur(24px);border:1px solid rgba(240,215,140,.4);border-radius:12px;color:var(--moon)}
+.terrain-card .tv{font-family:var(--mono);color:var(--gold-warm);font-size:16px;font-weight:700}
+.terrain-card .tl2{font-size:11.5px;color:#9FB4C8;line-height:1.7}
+.terrain-legend{position:absolute;left:18px;bottom:14px;font-size:11px;color:#8FA8BF;letter-spacing:.08em;z-index:4}
+
+/* ================= 三级运维 ================= */
+.ops-card{text-align:center;padding:34px 26px}
+.ops-card .on2{font-family:var(--serif);font-size:19px;font-weight:800;margin-bottom:6px}
+.ops-card .ov{font-family:var(--mono);font-size:clamp(36px,3.6vw,54px);font-weight:700;line-height:1.15}
+.ops-card .od{font-size:12.5px;margin-top:6px}
+.ops-card .bar{height:8px;border-radius:4px;background:rgba(240,242,245,.1);margin-top:20px;overflow:hidden}
+.ops-card .bar i{display:block;height:100%;border-radius:4px}
+.ops-red{border-color:rgba(200,75,63,.55);box-shadow:0 0 44px rgba(200,75,63,.18)}
+.ops-red .on2{color:#E88A7E}.ops-red .ov{color:#E88A7E;text-shadow:0 0 24px rgba(200,75,63,.5)}
+.ops-red .bar i{background:linear-gradient(90deg,#8E332B,var(--cinnabar))}
+.ops-gold{border-color:rgba(240,215,140,.5);box-shadow:0 0 44px rgba(212,168,75,.18)}
+.ops-gold .on2{color:var(--gold-warm)}.ops-gold .ov{color:var(--gold-warm);text-shadow:0 0 24px rgba(240,215,140,.45)}
+.ops-gold .bar i{background:var(--gold-grad)}
+.ops-cyan{border-color:rgba(61,90,117,.8);box-shadow:0 0 44px rgba(61,90,117,.3)}
+.ops-cyan .on2{color:#9FBCD6}.ops-cyan .ov{color:#9FBCD6;text-shadow:0 0 24px rgba(97,138,172,.6)}
+.ops-cyan .bar i{background:linear-gradient(90deg,#2A4157,#5E87AC)}
+
+/* ================= 趋势 / 客诉 ================= */
+.chart-box{background:#fff;border:1px solid rgba(18,35,58,.14);border-radius:var(--r-lg);padding:30px 34px;box-shadow:0 14px 40px rgba(18,35,58,.08)}
+.chart-box svg{width:100%;height:auto;display:block}
+.legend{display:flex;gap:22px;font-size:12px;color:var(--ink-soft);margin-top:14px;flex-wrap:wrap}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.complaint-row{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.complaint-row .cn{width:92px;font-size:13px;color:var(--moon);text-align:right;flex-shrink:0}
+.complaint-row .cb{flex:1;height:26px;background:rgba(240,242,245,.08);border-radius:6px;overflow:hidden}
+.complaint-row .cb i{display:block;height:100%;border-radius:6px}
+.complaint-row .cv{font-family:var(--mono);font-size:15px;font-weight:700;width:64px;flex-shrink:0}
+</style>
+</head>
+<body data-page="dashboard">
+
+<!-- ================= 1. 页头 ================= -->
+<section class="page-hero noise scanlines">
+  <div class="grid-bg"></div>
+  <div class="container hero-cols">
+    <div>
+      <div class="kicker">DATA DASHBOARD</div>
+      <h1 class="display">数据看板</h1>
+      <div class="page-sub">大荔县（含东高垣村）光伏运营与治理数据可视化</div>
+      <p class="lead" style="margin-top:20px">签约、装机、发电、运维、客诉五类数据一屏可视，问题电站分级预警，让运营决策有据可依。</p>
+      <p class="src">全县数据口径：大荔县全县（含东高垣村），截至 2025 年 7—8 月企业台账</p>
+    </div>
+    <div class="mini-kpis rv" id="countyKpis"></div>
+  </div>
+</section>
+
+<!-- ================= 2. 核心指标 ================= -->
+<section class="section dark noise" style="padding:90px 0">
+  <div class="container">
+    <div class="section-head rv">
+      <div class="kicker">东高垣村核心指标</div>
+      <h2 class="h-sec">整村运营，四数总览</h2>
+      <p class="src" style="margin-top:8px">东高垣村口径，2026 年 2 月企业访谈</p>
+    </div>
+    <div class="grid-4" id="villageKpis"></div>
+  </div>
+</section>
+
+<!-- ================= 3. 3D 数据地形图 ================= -->
+<section class="section paper">
+  <div class="container">
+    <div class="section-head rv">
+      <div class="kicker">3D 数据地形图</div>
+      <h2 class="h-sec">全县电站运营地形</h2>
+      <p class="lead">艺术化数据地形（装饰性可视化）：峰峦起伏仅作视觉隐喻，不对应具体分区数值，真实指标见上方数据卡。按住拖拽可旋转视角，悬停查看全县真实指标摘要。</p>
+      <p class="src" style="margin-top:8px">示意模型：基于大荔县全县（含东高垣村）台账汇总指标生成，截至 2025 年 7—8 月企业台账；分区数值为示意，不对应具体村庄</p>
+    </div>
+    <div class="terrain-wrap rv" id="terrainWrap">
+      <canvas id="terrain"></canvas>
+      <div class="terrain-card" id="terrainCard"></div>
+      <div class="terrain-legend">◈ 艺术化数据地形（装饰性可视化）· 真实指标见上方数据卡</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 4. 三级运维 ================= -->
+<section class="section dark noise">
+  <div class="container">
+    <div class="section-head rv">
+      <div class="kicker">三级运维状态</div>
+      <h2 class="h-sec">问题电站，分级预警</h2>
+      <p class="src" style="margin-top:8px">大荔县全县（含东高垣村），截至 2025 年 7—8 月企业台账；全县持有电站 1900 余户</p>
+    </div>
+    <div class="grid-3" id="opsCards"></div>
+  </div>
+</section>
+
+<!-- ================= 5. 发电量趋势 ================= -->
+<section class="section paper">
+  <div class="container">
+    <div class="section-head rv">
+      <div class="kicker">并网趋势</div>
+      <h2 class="h-sec">全县年度新增并网户数</h2>
+      <p class="src" style="margin-top:8px">大荔县全县（含东高垣村），截至 2025 年 7—8 月企业台账</p>
+    </div>
+    <div class="chart-box rv">
+      <svg viewBox="0 0 900 340" id="trendSvg"></svg>
+      <div class="legend">
+        <span><i style="background:#D4A84B"></i>年度新增并网（户）</span>
+        <span><i style="background:#C84B3F"></i>2025 年：政策调整期</span>
+        <span style="color:var(--cinnabar)">2026 年全县数据：数据收集中，持续更新</span>
+      </div>
+      <p style="font-size:12.5px;color:var(--ink-soft);margin-top:14px">2024 年全县 1688 户发电 4971.40 万 kWh，完成率 97.1%；2025 年 1—7 月发电 5173.28 万 kWh，完成率 92.2%。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 6. 客诉分析 ================= -->
+<section class="section jade noise">
+  <div class="container">
+    <div class="section-head rv">
+      <div class="kicker">客诉分析</div>
+      <h2 class="h-sec">13 起客诉，全部办结</h2>
+      <p class="src" style="margin-top:8px">大荔县全县（含东高垣村），截至 2025 年 7—8 月企业台账</p>
+    </div>
+    <div class="grid-2">
+      <div class="glass rv" style="padding:32px" id="complaintBars"></div>
+      <div class="rv" style="padding:6px 4px">
+        <p style="font-size:14.5px;color:#C6D3E0">全县台账记录的 13 起客诉中，房屋漏水 10 起占比最大，收益结算 2 起、施工问题 1 起。全部客诉均已办结：受理登记、限时转办、办结回访三道环节闭环留痕，办结后 3 日内回访确认。</p>
+        <p style="font-size:14.5px;color:#C6D3E0;margin-top:14px">漏水类客诉集中暴露“防水验收”环节的薄弱点——这也是模板库中《竣工验收单》将“防水处理”列为必验项、执行“雨后复验”的直接原因。</p>
+        <div style="margin-top:20px;display:inline-block;border:1px solid rgba(240,215,140,.5);border-radius:99px;padding:8px 22px;font-size:13px;color:var(--gold-warm);letter-spacing:.08em">办结率 100% · 13 / 13</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 7. 数据溯源说明 ================= -->
+<section class="section paper">
+  <div class="container">
+    <div class="section-head rv">
+      <div class="kicker">数据溯源</div>
+      <h2 class="h-sec">每一个数字，都有出处</h2>
+    </div>
+    <div class="grid-3">
+      <div class="card rv"><h4 style="font-family:var(--serif);color:var(--jade);font-size:17px;margin-bottom:8px">来源</h4><p style="font-size:13.5px;color:var(--ink-soft)">全县运营数据来自 G 项目运营公司企业台账（截至 2025 年 7—8 月）；村庄数据来自 2026 年 2 月驻点调研企业访谈。</p></div>
+      <div class="card rv"><h4 style="font-family:var(--serif);color:var(--jade);font-size:17px;margin-bottom:8px">更新频率</h4><p style="font-size:13.5px;color:var(--ink-soft)">团队 2026 年 5—9 月按月与企业线上核对数据口径，跟踪“531”新政后项目结算变化；页面数据随核对滚动更新。</p></div>
+      <div class="card rv"><h4 style="font-family:var(--serif);color:var(--jade);font-size:17px;margin-bottom:8px">可信度自评</h4><p style="font-size:13.5px;color:var(--ink-soft)">台账数据为一手企业数据，可信度较高；示意模型与预测类内容均已明确标注，不与实测数据混用。</p></div>
+    </div>
+    <p class="src rv" style="text-align:center;margin-top:28px">本页指标由云端数据库实时下发；离线时显示本地缓存口径。</p>
+    <div class="rv" style="text-align:center;margin-top:44px">
+      <a class="btn btn-gold" href="trust.html">查看完整数据溯源表</a>
+    </div>
+  </div>
+</section>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/main.js"></script>
+<script>
+/* ================= 看板指标渲染：云端数据库优先，失败回退本地缓存（WS_DATA.dashboardFallback） ================= */
+(function () {
+  "use strict";
+  var FALLBACK = window.WS_DATA.dashboardFallback;
+
+  /* 数字滚动复用 main.js 的 window.countUp（同一套 1.8s ease-out-expo），
+     这里只补一个观察器，给云端数据到达后动态渲染的卡片手动触发 */
+  var ioCount = new IntersectionObserver(function (es) {
+    es.forEach(function (en) { if (en.isIntersecting) { window.countUp(en.target); ioCount.unobserve(en.target); } });
+  }, { threshold: 0.4 });
+  function animate(scope) { scope.querySelectorAll("[data-count]").forEach(function (el) { ioCount.observe(el); }); }
+
+  function byGrp(rows, grp) {
+    return rows.filter(function (r) { return r.grp === grp; }).sort(function (a, b) { return (a.sort || 0) - (b.sort || 0); });
+  }
+
+  /* 装饰性资源（运维卡说明／客诉配色）：与指标数据无关，按位次循环使用 */
+  var OPS_STYLE = [
+    { cls: "ops-red", color: "#C89A92", desc: "纠纷 17 · 故障 3 · 电网 2<br>24 小时响应，逐户销号" },
+    { cls: "ops-gold", color: "#CBB37E", desc: "按月跟踪，纳入容量联审<br>与电网改造计划" },
+    { cls: "ops-cyan", color: "#9FBCD6", desc: "巡检周期处置<br>防止升级为停机" }
+  ];
+  var CMP_STYLE = [
+    { bar: "linear-gradient(90deg,#8E332B,#C84B3F)", color: "#E88A7E" },
+    { bar: "var(--gold-grad)", color: "var(--gold-warm)" },
+    { bar: "linear-gradient(90deg,#2A4157,#5E87AC)", color: "#9FBCD6" }
+  ];
+
+  function renderAll(rows) {
+    /* 全县 KPI（页头迷你卡）：value_text 优先于 value_num 显示 */
+    var county = byGrp(rows, "county_kpi");
+    window.__dashCounty = county; /* 供 3D 地形悬停卡读取全县真实指标 */
+    document.getElementById("countyKpis").innerHTML = county.map(function (r) {
+      var v = r.value_text ? r.value_text : r.value_num + (r.unit === "%" ? "%" : "");
+      var suffix = r.unit && r.unit !== "%" ? "（" + r.unit + "）" : "";
+      return '<div class="glass mini-kpi"><div class="v">' + v + '</div><div class="l">' + r.label + suffix + "</div></div>";
+    }).join("");
+
+    var village = byGrp(rows, "village_kpi");
+    var vk = document.getElementById("villageKpis");
+    vk.innerHTML = village.map(function (r, i) {
+      var num = r.value_text ? parseFloat(r.value_text) : r.value_num;
+      return '<div class="glass kpi-card rv on"><div class="kl">' + r.label + '</div>' +
+        '<div class="kv"><span data-count="' + num + '">0</span><i>' + (r.unit || "") + "</i></div></div>";
+    }).join("");
+    animate(vk);
+
+    /* 三级运维：占比条与占比文案（离线缓存含既有口径 pct；云端数据按全县总数实算） */
+    var countyTotal = county.length && county[0].value_num ? county[0].value_num : 0;
+    var ops = byGrp(rows, "ops_level");
+    var oc = document.getElementById("opsCards");
+    oc.innerHTML = ops.map(function (r, i) {
+      var st = OPS_STYLE[i % OPS_STYLE.length];
+      var pct = r.pct != null ? String(r.pct) : (countyTotal ? (r.value_num / countyTotal * 100).toFixed(1) : "");
+      return '<div class="card ops-card ' + st.cls + ' rv on">' +
+        '<div class="on2">' + r.label + '</div>' +
+        '<div class="ov"><span data-count="' + r.value_num + '">0</span> ' + (r.unit || "") + '</div>' +
+        '<div class="od" style="color:' + st.color + '">' + st.desc + '</div>' +
+        '<div class="bar"><i style="width:' + (pct || 0) + '%"></i></div>' +
+        (pct ? '<div style="font-size:11px;color:#8FA8BF;margin-top:8px">约占全县电站 ' + pct + "%</div>" : "") +
+        "</div>";
+    }).join("");
+    animate(oc);
+
+    var trend = byGrp(rows, "trend");
+    var svg = document.getElementById("trendSvg");
+    if (trend.length) {
+      var maxV = Math.max.apply(null, trend.map(function (r) { return r.value_num; }));
+      var last = trend.length - 1;
+      var pts = trend.map(function (r, i) {
+        return { x: 130 + (last ? i * (660 / last) : 0), y: 290 - (r.value_num / maxV) * 230, r: r };
+      });
+      var maxI = 0;
+      pts.forEach(function (p, i) { if (p.r.value_num > pts[maxI].r.value_num) maxI = i; });
+      var line = pts.map(function (p) { return p.x + "," + p.y; }).join(" ");
+      svg.innerHTML =
+        '<defs><linearGradient id="gfill" x1="0" y1="0" x2="0" y2="1">' +
+        '<stop offset="0" stop-color="#D4A84B" stop-opacity=".28"/><stop offset="1" stop-color="#D4A84B" stop-opacity="0"/>' +
+        "</linearGradient></defs>" +
+        '<line x1="70" y1="290" x2="860" y2="290" stroke="#1B2A3A" stroke-opacity=".25"/>' +
+        '<line x1="70" y1="290" x2="70" y2="30" stroke="#1B2A3A" stroke-opacity=".25"/>' +
+        '<polygon points="' + line + " " + pts[last].x + ",290 " + pts[0].x + ',290" fill="url(#gfill)"/>' +
+        '<polyline points="' + line + '" fill="none" stroke="#D4A84B" stroke-width="2.5"/>' +
+        pts.map(function (p, i) {
+          var c = i === last ? "#C84B3F" : "#D4A84B";
+          return '<circle cx="' + p.x + '" cy="' + p.y + '" r="6" fill="' + c + '"/>' +
+            '<text x="' + p.x + '" y="' + (p.y - 26) + '" text-anchor="middle" font-size="22" font-weight="700" fill="' + (i === last ? "#C84B3F" : "#12233A") + '" font-family="monospace">' + p.r.value_num + "</text>" +
+            '<text x="' + p.x + '" y="316" text-anchor="middle" font-size="14" fill="#4A6076">' + p.r.label + "</text>";
+        }).join("") +
+        '<text x="' + pts[maxI].x + '" y="' + (pts[maxI].y + 30) + '" text-anchor="middle" font-size="12" fill="#8a6a2a">峰值</text>' +
+        '<text x="640" y="180" text-anchor="middle" font-size="12" fill="#C84B3F" transform="rotate(24 640 180)">“531”新政后新增显著放缓</text>';
+    }
+
+    var cmps = byGrp(rows, "complaint");
+    if (cmps.length) {
+      var maxC = Math.max.apply(null, cmps.map(function (r) { return r.value_num; }));
+      document.getElementById("complaintBars").innerHTML = cmps.map(function (r, i) {
+        var st = CMP_STYLE[i % CMP_STYLE.length];
+        var w = maxC ? Math.max(r.value_num / maxC * 100, 4) : 0;
+        return '<div class="complaint-row"><span class="cn">' + r.label + '</span>' +
+          '<span class="cb"><i style="width:' + w + "%;background:" + st.bar + '"></i></span>' +
+          '<span class="cv" style="color:' + st.color + '">' + r.value_num + " " + (r.unit || "") + "</span></div>";
+      }).join("");
+    }
+  }
+
+  /* 首屏先出本地缓存口径（不白屏），随后尝试云端实时下发 */
+  renderAll(FALLBACK);
+  if (window.MG) {
+    MG.metrics().then(function (rows) { if (rows && rows.length) renderAll(rows); });
+  }
+})();
+</script>
+<script>
+/* ================= 动效 #4：3D 数据地形图（Canvas 2D 等距投影，可拖拽） ================= */
+(function () {
+  var cv = document.getElementById("terrain"), ctx = cv.getContext("2d");
+  var wrap = document.getElementById("terrainWrap"), card = document.getElementById("terrainCard");
+  var W, H, DPR = Math.min(devicePixelRatio || 1, 2);
+  function resize() {
+    W = wrap.clientWidth; H = wrap.clientHeight;
+    cv.width = W * DPR; cv.height = H * DPR;
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+  resize(); addEventListener("resize", resize);
+
+  var N = 22, CELL = 30;
+  var heights = [];
+  (function () {
+    var seed = 42; /* 种子只是让地形每次长得一样，无业务含义 */
+    function rnd() { seed = (seed * 48271) % 2147483647; return seed / 2147483647; }
+    for (var i = 0; i < N; i++) { heights[i] = [];
+      for (var j = 0; j < N; j++) {
+        var h = Math.sin(i * 0.55) * Math.cos(j * 0.5) * 22 + Math.sin(i * 0.21 + j * 0.33) * 26 + rnd() * 14;
+        h += Math.max(0, 60 - Math.hypot(i - 7, j - 8) * 9);   /* 主峰（装饰性） */
+        h += Math.max(0, 42 - Math.hypot(i - 16, j - 15) * 8); /* 次峰（装饰性） */
+        h = Math.max(h, 2);
+        heights[i][j] = h;
+      }
+    }
+  })();
+
+  var rot = Math.PI / 4, tilt = 0.62, drag = false, lx = 0, t = 0;
+  wrap.addEventListener("mousedown", function (e) { drag = true; lx = e.clientX; });
+  addEventListener("mouseup", function () { drag = false; });
+  addEventListener("mousemove", function (e) { if (drag) { rot += (e.clientX - lx) * 0.006; lx = e.clientX; } });
+  wrap.addEventListener("touchmove", function (e) { if (e.touches.length) { rot += (e.touches[0].clientX - lx) * 0.006; lx = e.touches[0].clientX; } }, { passive: true });
+  wrap.addEventListener("touchstart", function (e) { lx = e.touches[0].clientX; }, { passive: true });
+
+  function proj(x, y, z) {
+    var cx = x - N / 2, cy = y - N / 2;
+    var rx = cx * Math.cos(rot) - cy * Math.sin(rot);
+    var ry = cx * Math.sin(rot) + cy * Math.cos(rot);
+    return [W / 2 + rx * CELL, H * 0.56 + ry * CELL * tilt - z * 1.6, ry];
+  }
+  var hoverCell = null;
+  wrap.addEventListener("mousemove", function (e) {
+    var r = wrap.getBoundingClientRect(), mx2 = e.clientX - r.left, my2 = e.clientY - r.top;
+    var best = null, bd = 1e9;
+    for (var i = 0; i < N; i += 2) for (var j = 0; j < N; j += 2) {
+      var p = proj(i, j, heights[i][j]);
+      var d = Math.hypot(p[0] - mx2, p[1] - my2);
+      if (d < bd) { bd = d; best = [i, j, p]; }
+    }
+    if (best && bd < 70) {
+      hoverCell = best;
+      card.style.display = "block";
+      card.style.left = Math.min(best[2][0] + 18, W - 200) + "px";
+      card.style.top = Math.max(best[2][1] - 96, 8) + "px";
+      /* 悬停卡只呈现真实口径：全县 KPI 摘要来自看板指标（云端或本地缓存），地形本身不产数据 */
+      var sum = (window.__dashCounty || []).map(function (r) {
+        return r.label + " " + (r.value_text ? r.value_text : r.value_num + (r.unit === "%" ? "%" : r.unit ? " " + r.unit : ""));
+      }).join("<br>");
+      card.innerHTML = '<div class="tv">分区 ' + String.fromCharCode(65 + Math.floor(best[0] / 4)) + "-" + (Math.floor(best[1] / 4) + 1) + '</div>' +
+        '<div class="tl2">数据口径：大荔县全县企业台账，截至 2025 年 7—8 月<br>' + sum + '<br>艺术化地形仅作装饰，真实指标见上方数据卡</div>';
+    } else { hoverCell = null; card.style.display = "none"; }
+  });
+  wrap.addEventListener("mouseleave", function () { hoverCell = null; card.style.display = "none"; });
+
+  function color(h, hover) {
+    var p = Math.min(h / 95, 1);
+    if (hover) return "rgba(240,215,140,.95)";
+    var r = Math.round(18 + p * (212 - 18)), g = Math.round(35 + p * (168 - 35)), b = Math.round(58 + p * (75 - 58));
+    return "rgba(" + r + "," + g + "," + b + "," + (0.25 + p * 0.7) + ")";
+  }
+  var visible = false;
+  new IntersectionObserver(function (es) { visible = es[0].isIntersecting; }, { threshold: 0.05 }).observe(cv);
+  function draw() {
+    if (visible) {
+      t += 0.012;
+      ctx.clearRect(0, 0, W, H);
+      var quads = [];
+      for (var i = 0; i < N - 1; i++) for (var j = 0; j < N - 1; j++) {
+        var wob = Math.sin(t + i * 0.4 + j * 0.3) * 1.6;
+        var h00 = heights[i][j] + wob, h10 = heights[i + 1][j] + wob, h11 = heights[i + 1][j + 1] + wob, h01 = heights[i][j + 1] + wob;
+        var p1 = proj(i, j, h00), p2 = proj(i + 1, j, h10), p3 = proj(i + 1, j + 1, h11), p4 = proj(i, j + 1, h01);
+        quads.push({ d: (p1[2] + p3[2]) / 2, p: [p1, p2, p3, p4], h: (h00 + h11) / 2, i: i, j: j });
+      }
+      quads.sort(function (a, b) { return a.d - b.d; });
+      quads.forEach(function (q) {
+        var hv = hoverCell && Math.abs(q.i - hoverCell[0]) <= 1 && Math.abs(q.j - hoverCell[1]) <= 1;
+        ctx.beginPath();
+        ctx.moveTo(q.p[0][0], q.p[0][1]);
+        for (var k = 1; k < 4; k++) ctx.lineTo(q.p[k][0], q.p[k][1]);
+        ctx.closePath();
+        ctx.fillStyle = color(q.h, hv);
+        ctx.fill();
+        ctx.strokeStyle = hv ? "rgba(240,215,140,.9)" : "rgba(240,215,140,.14)";
+        ctx.lineWidth = hv ? 1.4 : 0.7;
+        if (hv) { ctx.shadowColor = "rgba(240,215,140,.8)"; ctx.shadowBlur = 14; }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      });
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>
+</body>
+</html>
