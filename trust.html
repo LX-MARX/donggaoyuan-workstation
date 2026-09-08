@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>背书与成果 · 东高垣数字治理工作站</title>
+<meta name="description" content="村两委回函、企业应用证明、成果清单、治理模板下载中心与数据溯源表。">
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/main.css">
+<style>
+/* ================= 回函仿纸卡 ================= */
+.letter{
+  position:relative;max-width:860px;margin:0 auto;background:#FDFBF3;color:#22303E;
+  border:1px solid rgba(138,106,42,.4);border-radius:6px;padding:56px 62px 48px;
+  box-shadow:0 24px 60px rgba(18,35,58,.18),inset 0 0 80px rgba(212,168,75,.06);
+  background-image:repeating-linear-gradient(180deg,rgba(138,106,42,.03) 0 1px,transparent 1px 8px);
+}
+.corner{position:absolute;width:34px;height:34px;border:2px solid var(--gold)}
+.corner.tl{top:10px;left:10px;border-right:none;border-bottom:none}
+.corner.tr{top:10px;right:10px;border-left:none;border-bottom:none}
+.corner.bl{bottom:10px;left:10px;border-right:none;border-top:none}
+.corner.br{bottom:10px;right:10px;border-left:none;border-top:none}
+.letter h3{font-family:var(--serif);text-align:center;font-size:24px;font-weight:900;letter-spacing:.1em;color:#1B2A3A;margin-bottom:6px}
+.letter .to{font-size:14px;margin:22px 0 12px;font-weight:700}
+.letter p{font-size:14.5px;line-height:2.1;text-indent:2em;font-family:var(--serif)}
+.letter .sign{text-align:right;margin-top:30px;font-size:14px;line-height:2;font-family:var(--serif)}
+.seal-stamp{
+  position:absolute;right:52px;bottom:36px;width:118px;height:118px;border:3px solid rgba(200,75,63,.75);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;text-align:center;color:rgba(200,75,63,.85);
+  font-family:var(--serif);font-weight:800;font-size:15px;letter-spacing:.2em;line-height:1.5;transform:rotate(-12deg);
+  text-shadow:0 0 1px rgba(200,75,63,.4);
+}
+@media(max-width:640px){.letter{padding:38px 26px}.seal-stamp{position:static;margin:24px auto 0;transform:rotate(-6deg)}}
+
+/* ================= 成果清单 ================= */
+.ach-item{display:flex;gap:24px;padding:26px 0;border-bottom:1px solid rgba(18,35,58,.12);align-items:flex-start}
+.ach-item .no{font-family:var(--mono);font-size:30px;font-weight:700;color:var(--gold);line-height:1;flex-shrink:0;width:56px}
+.ach-item h4{font-family:var(--serif);font-size:18px;color:var(--jade);font-weight:800;margin-bottom:6px}
+.ach-item p{font-size:13.5px;color:var(--ink-soft)}
+
+/* ================= 模板下载中心 ================= */
+.tpl-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px}
+@media(max-width:860px){.tpl-grid{grid-template-columns:1fr}}
+.tpl-card{padding:0;overflow:hidden}
+.tpl-head{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;cursor:pointer;user-select:none}
+.tpl-head .tn{font-size:15px;font-weight:800;color:var(--moon)}
+.tpl-head .tn b{color:var(--gold-warm);font-family:var(--mono);margin-right:10px}
+.tpl-head .ta{font-size:12px;color:var(--gold-warm);letter-spacing:.1em}
+.tpl-body{display:none;border-top:1px solid rgba(212,168,75,.2);padding:20px 24px}
+.tpl-card.open .tpl-body{display:block}
+.tpl-body table{font-size:12px}
+.tpl-note{font-size:12px;color:#8FA8BF;margin-top:14px;line-height:1.9}
+.tpl-acts{display:flex;gap:10px;margin-top:14px}
+.tpl-card table.tb th{background:rgba(18,35,58,.9)}
+.tpl-card table.tb td{background:transparent;color:#C6D3E0;border-color:rgba(212,168,75,.18)}
+.tpl-card table.tb tr:nth-child(even) td{background:rgba(212,168,75,.04)}
+.tpl-scroll{overflow-x:auto}
+
+/* ================= 溯源表 ================= */
+.src-table th{white-space:normal}
+
+/* ================= 打印：表格强制黑白可读 ================= */
+@media print{
+  .tpl-card table.tb th,.tpl-card table.tb td{color:#000!important;background:#fff!important;border-color:#999!important}
+  .tpl-card table.tb tr:nth-child(even) td{background:#fff!important}
+  .tpl-note,.tpl-note b{color:#000!important}
+}
+</style>
+</head>
+<body data-page="trust">
+
+<!-- ================= 页头 ================= -->
+<section class="section dark noise scanlines" style="padding:170px 0 80px">
+  <div class="container">
+    <div class="kicker">CREDIBILITY</div>
+    <h1 class="display">背书与成果</h1>
+    <p class="lead" style="margin-top:22px">回函、企业合作、成果清单、治理模板与数据溯源——每一条信任，都可以被查验。</p>
+  </div>
+</section>
+
+<!-- ================= 1. 村两委回函 ================= -->
+<section class="section paper">
+  <div class="container">
+    <div class="section-head rv" style="text-align:center;margin-left:auto;margin-right:auto">
+      <div class="kicker" style="justify-content:center">村两委回函</div>
+      <h2 class="h-sec">一纸回函，四方协同的见证</h2>
+    </div>
+    <div class="letter rv">
+      <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+      <h3>关于四川大学课题组研究建议的回函（摘录）</h3>
+      <div style="text-align:center;font-size:12px;color:#7A6A45;letter-spacing:.2em">东高垣村党支部 · 村民委员会</div>
+      <div class="to">四川大学吴玉章学院、四川大学马克思主义学院：</div>
+      <p>课题组秉持严谨的学术态度与扎实的调研作风，多次深入我村田间地头、农户家中，与村“两委”干部、村民代表、项目参与农户开展深度访谈，摸清我村分布式入户光伏项目的实施全貌、运行成效与现存堵点。形成的研究报告精准剖析了项目运行的核心问题与短板不足，提出的优化路径贴合我村发展实际，兼具理论深度与实践可操作性。</p>
+      <p>该成果不仅为我村光伏项目长效规范运营提供了清晰的行动指引，更为我村依托清洁能源产业推进乡村振兴、促进共同富裕提供了宝贵的理论支撑，帮助我村对项目发展的底层逻辑与优化方向形成了更系统、更深刻的认知。</p>
+      <p>我村高度认可该研究成果的学术价值与实践指导意义，愿持续为课题组的深化研究工作提供全方位支持与配合。</p>
+      <div class="sign">陕西省渭南市大荔县段家镇东高垣村党支部<br>陕西省渭南市大荔县段家镇东高垣村村民委员会<br>2026 年 4 月 22 日</div>
+      <div class="seal-stamp">原件<br>备查</div>
+    </div>
+    <p class="src rv" style="text-align:center;margin-top:22px">回函原件由东高垣村两委留存备查；此处为内容摘录，致函对象与日期照录原件</p>
+  </div>
+</section>
+
+<!-- ================= 2. 企业应用证明 ================= -->
+<section class="section dark noise">
+  <div class="container">
+    <div class="grid-2" style="align-items:center">
+      <div class="rv">
+        <div class="kicker">企业应用证明</div>
+        <h2 class="h-sec">与运营企业的数据合作</h2>
+        <p class="lead" style="margin-top:18px">G 项目运营公司（负责大荔县项目运营、结算、分红）向课题组开放了全县电站台账口径数据，支撑政策库校验与数据看板建设；项目投资建设方为 H 光伏公司（省属国有企业）。企业收支台账明细等涉敏信息不进入任何参赛材料。</p>
+      </div>
+      <div class="card rv" style="text-align:center;padding:44px 30px">
+        <svg width="52" height="52" viewBox="0 0 52 52" fill="none" stroke="#D4A84B" stroke-width="2" style="margin:0 auto 18px"><rect x="7" y="7" width="38" height="38" rx="4"/><path d="M15 26l8 8 15-16" stroke="#F0D78C"/></svg>
+        <div style="font-family:var(--serif);font-size:19px;color:var(--moon);font-weight:800">企业应用证明</div>
+        <div style="margin-top:12px;font-size:13px;color:#9FB4C8">正在开具中，开具后将在此公示并纳入证据册</div>
+        <div style="margin-top:18px;display:inline-block;border:1px dashed rgba(240,215,140,.55);border-radius:99px;padding:7px 20px;font-size:12px;color:var(--gold-warm);letter-spacing:.12em">状态：办理中</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 3. 成果清单 ================= -->
+<section class="section paper">
+  <div class="container">
+    <div class="section-head rv">
+      <div class="kicker">成果清单</div>
+      <h2 class="h-sec">四项相互印证的实践成果</h2>
+    </div>
+    <div class="rv">
+      <div class="ach-item"><span class="no">01</span><div><h4>136 页调研报告</h4><p>《屋顶上的共富路——整村分布式光伏入户的四方协同机制与农户增收效应研究》主体调研成果，与光伏方案站点共享。</p></div></div>
+      <div class="ach-item"><span class="no">02</span><div><h4>政策智能分析系统 v1.0.0</h4><p>121 条五级政策库 + 智能分析 + 62 项可申报项目清单，2026 年 4 月 14 日交付东高垣村两委。</p></div></div>
+      <div class="ach-item"><span class="no">03</span><div><h4>数字治理工作站</h4><p>即本网站：政策智库、申报助手、数据看板三大模块的整村光伏治理工具中枢。</p></div></div>
+      <div class="ach-item"><span class="no">04</span><div><h4>整村光伏建设数智方案</h4><p>关联成果：屋顶上的共富路——整村光伏建设全周期操作方案与数智治理平台（见页脚“相关方案”链接）。</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 4. 模板下载中心 ================= -->
+<section class="section dark noise">
+  <div class="container">
+    <div class="section-head rv">
+      <div class="kicker">模板下载中心</div>
+      <h2 class="h-sec">治理端常用 10 张模板表</h2>
+      <p class="lead">选自《光伏村建设手册》20 张模板中治理端最常用的 10 张。点击展开在线预览与填表说明，可直接打印使用。</p>
+      <p class="src" style="margin-top:8px">表格内容来源：《光伏村建设手册》附录 B；带 ★ 栏目为必填项</p>
+    </div>
+    <div class="tpl-grid" id="tplGrid"></div>
+  </div>
+</section>
+
+<!-- ================= 5. 数据溯源表 ================= -->
+<section class="section paper">
+  <div class="container">
+    <div class="section-head rv">
+      <div class="kicker">数据溯源表</div>
+      <h2 class="h-sec">关键数据一览</h2>
+    </div>
+    <div class="rv" style="overflow-x:auto">
+      <table class="tb src-table">
+        <thead><tr><th>数据项</th><th>口径数值</th><th>来源</th><th>时点</th><th>可信度自评</th></tr></thead>
+        <tbody>
+          <tr><td>签约装机农户</td><td>185 户</td><td>企业访谈</td><td>2026 年 2 月</td><td>高：与企业台账一致</td></tr>
+          <tr><td>装机规模 / 总投资</td><td>5.963 MW / 约 2100 万元</td><td>企业访谈</td><td>2026 年 2 月</td><td>高</td></tr>
+          <tr><td>年发电量 / 年收益</td><td>约 805 万 kWh / 约 286 万元</td><td>企业访谈（0.3545 元/kWh 脱硫煤标杆电价测算）</td><td>2026 年 2 月</td><td>高：口径自洽</td></tr>
+          <tr><td>租金标准</td><td>30 元/块/年（人字坡 15 元/块/年），户均约 1500—2000 元</td><td>合同与入户访谈</td><td>2026 年 2 月</td><td>高</td></tr>
+          <tr><td>全县持有电站</td><td>1900 余户、69.62 MW</td><td>G 项目运营公司企业台账</td><td>截至 2025 年 7—8 月</td><td>高：一手台账</td></tr>
+          <tr><td>全县年度新增并网</td><td>2023 年 620 户 / 2024 年 1183 户 / 2025 年 116 户</td><td>企业台账</td><td>截至 2025 年 7—8 月</td><td>高</td></tr>
+          <tr><td>全县发电完成率</td><td>2024 年 97.1%；2025 年 1—7 月 92.2%</td><td>企业台账</td><td>截至 2025 年 7—8 月</td><td>高</td></tr>
+          <tr><td>问题电站三级分类</td><td>停机 22 户 / 超压 514 户 / 亚健康 156 户</td><td>企业台账</td><td>截至 2025 年 7—8 月</td><td>高</td></tr>
+          <tr><td>客诉</td><td>13 起全部办结（漏水 10、收益 2、施工 1）</td><td>企业台账</td><td>截至 2025 年 7—8 月</td><td>高</td></tr>
+          <tr><td>政策库</td><td>收录 121 条，剔除 2 条误入库，展示 119 条</td><td>课题组五级政策文本库</td><td>2025 年 10 月—2026 年 9 月</td><td>中高：以公开发布原文为准</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 6. 调研方法备注 ================= -->
+<section class="section jade noise">
+  <div class="container">
+    <div class="section-head rv">
+      <div class="kicker">调研方法备注</div>
+      <h2 class="h-sec">三类数据来源，三种证据强度</h2>
+    </div>
+    <div class="grid-3">
+      <div class="card rv"><h4 style="font-family:var(--serif);color:var(--gold-warm);font-size:17px;margin-bottom:8px">企业一手台账</h4><p style="font-size:13.5px;color:#9FB4C8">G 项目运营公司全县运营台账，覆盖并网、发电、运维、客诉四类记录，为定量分析的骨干证据。</p></div>
+      <div class="card rv"><h4 style="font-family:var(--serif);color:var(--gold-warm);font-size:17px;margin-bottom:8px">驻点入户访谈</h4><p style="font-size:13.5px;color:#9FB4C8">2025 年 7 月首次驻村、2026 年 2 月驻点深化（3 人约 1 周、每日进村入户），企业访谈 4 场、村级与农户访谈多场，访谈录音近 10 份。</p></div>
+      <div class="card rv"><h4 style="font-family:var(--serif);color:var(--gold-warm);font-size:17px;margin-bottom:8px">问卷与公开文本</h4><p style="font-size:13.5px;color:#9FB4C8">青年群体认知问卷 100 份（问卷星线上平台，仅用于测度公众认知结构）；村内入户问卷 10 余份（农户一手反馈）；五级政策公开文本 121 条。</p></div>
+    </div>
+  </div>
+</section>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/main.js"></script>
+<script>
+/* ================= 治理端 10 张模板表（内容取自《光伏村建设手册》附录 B） ================= */
+(function () {
+  var TPLS = window.WS_DATA.templates; /* 模板表数据已迁移至 assets/js/data.js（WS_DATA.templates） */
+  var grid = document.getElementById("tplGrid");
+  grid.innerHTML = TPLS.map(function (t, i) {
+    var rows = t.rows.map(function (r) {
+      return "<tr>" + r.map(function (c) { return "<td>" + (c || "　") + "</td>"; }).join("") + "</tr>";
+    }).join("");
+    return '<div class="card tpl-card rv" data-i="' + i + '">' +
+      '<div class="tpl-head"><span class="tn"><b>' + t.id + "</b>" + t.name + '</span><span class="ta">在线预览 ▾</span></div>' +
+      '<div class="tpl-body"><div class="tpl-scroll"><table class="tb"><thead><tr>' +
+      t.head.map(function (h) { return "<th>" + h + "</th>"; }).join("") + "</tr></thead><tbody>" + rows + "</tbody></table></div>" +
+      '<div class="tpl-note"><b style="color:var(--gold-warm)">填表说明</b><br>' + t.note + "</div>" +
+      '<div class="tpl-acts no-print"><button class="btn btn-gold btn-sm" data-print="' + i + '">打印此表</button></div>' +
+      "</div></div>";
+  }).join("");
+  grid.addEventListener("click", function (e) {
+    var pb = e.target.closest("[data-print]");
+    if (pb) {
+      /* 只打印该张模板表：未展开也能打（打印样式强制 .pz-live 显示） */
+      var card = pb.closest(".tpl-card"), t = TPLS[+card.getAttribute("data-i")];
+      window.WS.printZone(card.querySelector(".tpl-body"), t.id + " " + t.name);
+      return;
+    }
+    var h = e.target.closest(".tpl-head");
+    if (h) h.parentElement.classList.toggle("open");
+  });
+  grid.querySelectorAll(".rv").forEach(function (el) { el.classList.add("on"); });
+})();
+</script>
+</body>
+</html>

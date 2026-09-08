@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>东高垣实证 · 东高垣数字治理工作站</title>
+<meta name="description" content="数字治理工作站在陕西省渭南市大荔县段家镇东高垣村的落地记录与成效验证。">
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/main.css">
+<style>
+.case-hero{min-height:60vh;display:flex;align-items:center;position:relative;overflow:hidden;padding:130px 0 70px;
+  background:linear-gradient(rgba(10,22,40,.6),rgba(10,22,40,.82)),url("assets/img/village-rooftop.jpg") center/cover no-repeat, var(--abyss)}
+.page-sub{font-size:clamp(15px,1.6vw,20px);color:#B9C9D8;margin-top:18px;letter-spacing:.06em}
+
+/* ================= 部署时间轴（垂直·左右交替） ================= */
+.vtl{position:relative;padding:20px 0}
+.vtl::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:2px;background:linear-gradient(180deg,transparent,rgba(212,168,75,.7) 8%,rgba(212,168,75,.7) 92%,transparent)}
+.vtl-item{position:relative;width:50%;padding:26px 52px 26px 0;text-align:right}
+.vtl-item:nth-child(even){margin-left:50%;padding:26px 0 26px 52px;text-align:left}
+.vtl-item::before{content:"";position:absolute;top:36px;right:-8px;width:14px;height:14px;border-radius:50%;background:var(--gold);box-shadow:0 0 16px rgba(212,168,75,.8);z-index:2}
+.vtl-item:nth-child(even)::before{right:auto;left:-8px}
+.vtl-item .d{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--gold);letter-spacing:.04em}
+.vtl-item h4{font-family:var(--serif);font-size:19px;color:var(--jade);margin:6px 0 8px;font-weight:800}
+.vtl-item p{font-size:13.5px;color:var(--ink-soft)}
+@media(max-width:720px){
+  .vtl::before{left:10px}
+  .vtl-item,.vtl-item:nth-child(even){width:100%;margin:0;padding:18px 0 18px 40px;text-align:left}
+  .vtl-item::before,.vtl-item:nth-child(even)::before{left:3px;right:auto;top:28px}
+}
+
+/* ================= 使用数据三卡 ================= */
+.use-card{padding:32px 28px}
+.use-card .uv{font-family:var(--serif);font-size:19px;font-weight:800;color:var(--gold-warm);margin-bottom:10px}
+.use-card p{font-size:13.5px;color:#9FB4C8}
+.use-card .tag3{display:inline-block;margin-top:16px;font-size:11.5px;letter-spacing:.1em;color:var(--gold);border:1px solid rgba(212,168,75,.5);border-radius:99px;padding:4px 14px}
+
+/* ================= 回函引用块 ================= */
+.quote{background:var(--jade);border-left:5px solid var(--gold);border-radius:0 var(--r-lg) var(--r-lg) 0;padding:38px 42px;position:relative;color:#E3E9EF;box-shadow:0 18px 50px rgba(18,35,58,.16)}
+.quote::before{content:"“";position:absolute;top:6px;left:20px;font-family:var(--serif);font-size:80px;color:var(--gold);opacity:.5;line-height:1}
+.quote p{font-family:var(--serif);font-size:clamp(15px,1.5vw,18px);line-height:2;padding-left:40px}
+.quote .qs{margin-top:18px;padding-left:40px;font-size:12.5px;color:#8FA8BF;letter-spacing:.06em}
+
+/* ================= 关联卡 ================= */
+.link-card{display:flex;justify-content:space-between;align-items:center;gap:30px;flex-wrap:wrap;padding:38px 42px}
+.link-card p{font-size:14px;color:#C6D3E0;max-width:720px}
+</style>
+</head>
+<body data-page="cases">
+
+<!-- ================= 1. 页头（实景底图 + 深色遮罩） ================= -->
+<section class="case-hero noise">
+  <div class="container">
+    <div class="kicker">FIELD EVIDENCE</div>
+    <h1 class="display">东高垣实证</h1>
+    <div class="page-sub">数字治理工作站在东高垣村的落地记录与成效验证</div>
+    <p class="lead" style="margin-top:20px">陕西省渭南市大荔县段家镇东高垣村：185 户签约、5.963 MW 装机的整村光伏标杆村，也是本工作站全部工具的首个真实用户。</p>
+  </div>
+</section>
+
+<!-- ================= 2. 部署时间轴 ================= -->
+<section class="section paper">
+  <div class="container">
+    <div class="section-head rv">
+      <div class="kicker">部署时间轴</div>
+      <h2 class="h-sec">14 个月，从驻村到上线</h2>
+    </div>
+    <div class="vtl rv">
+      <div class="vtl-item"><div class="d">2025 年 7 月</div><h4>首次驻村</h4><p>团队首次进驻东高垣村调研约 1 周，发现政策分散、申报信息差、台账不透明三大治理痛点。</p></div>
+      <div class="vtl-item"><div class="d">2025 年 10 月</div><h4>启动政策库建设</h4><p>围绕整村光伏全周期，系统收集国家、省、市、县、镇村五级政策文本 121 条。</p></div>
+      <div class="vtl-item"><div class="d">2026 年 2 月</div><h4>驻点深化调研</h4><p>3 人驻点约 1 周，每日进村入户，完成 62 项可申报项目梳理与运维台账核对。</p></div>
+      <div class="vtl-item"><div class="d">2026 年 4 月</div><h4>系统交付与村两委回函</h4><p>政策智能分析系统 v1.0.0 交付村两委；4 月 22 日村党支部、村民委员会联合出具回函。</p></div>
+      <div class="vtl-item"><div class="d">2026 年 9 月</div><h4>数字治理工作站上线</h4><p>政策智库、申报助手、数据看板三大模块整合为工作站网站，面向县镇干部、村两委与企业运营开放。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 3. 使用数据记录 ================= -->
+<section class="section dark noise">
+  <div class="container">
+    <div class="section-head rv">
+      <div class="kicker">使用数据记录</div>
+      <h2 class="h-sec">村两委的真实使用</h2>
+    </div>
+    <div class="grid-3">
+      <div class="glass use-card rv">
+        <div class="uv">政策检索</div>
+        <p>村两委围绕“整县试点”“电价补贴”“531 新政”等高频问题使用政策智库检索；检索行为统计功能已上线，累计数据尚在汇总。</p>
+        <span class="tag3">检索次数：数据收集中，持续更新</span>
+      </div>
+      <div class="glass use-card rv">
+        <div class="uv">申报匹配</div>
+        <p>围绕 62 项可申报项目清单，村两委与镇政府正在逐项比对适配度；已成功申报与拟申报项目数待村级确认后公布。</p>
+        <span class="tag3">申报成果：数据收集中，持续更新</span>
+      </div>
+      <div class="glass use-card rv">
+        <div class="uv">数据查看</div>
+        <p>数据看板的三级运维视图已用于停机工单跟踪；停机工单平均响应时长的对照统计周期尚不足，暂不给出数字。</p>
+        <span class="tag3">响应时长：数据收集中，持续更新</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 4. 村两委反馈摘录 ================= -->
+<section class="section paper">
+  <div class="container">
+    <div class="section-head rv">
+      <div class="kicker">村两委反馈</div>
+      <h2 class="h-sec">来自回函的摘录</h2>
+    </div>
+    <div class="quote rv">
+      <p>课题组秉持严谨的学术态度与扎实的调研作风，多次深入我村田间地头、农户家中，与村“两委”干部、村民代表、项目参与农户开展深度访谈，摸清我村分布式入户光伏项目的实施全貌、运行成效与现存堵点。</p>
+      <div class="qs">—— 东高垣村党支部、村民委员会《关于四川大学课题组研究建议的回函》，2026 年 4 月 22 日</div>
+    </div>
+    <div class="quote rv" style="margin-top:26px">
+      <p>该成果不仅为我村光伏项目长效规范运营提供了清晰的行动指引，更为我村依托清洁能源产业推进乡村振兴、促进共同富裕提供了宝贵的理论支撑。</p>
+      <div class="qs">—— 同上；回函原件由村两委留存备查</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 5. 与光伏方案关联 ================= -->
+<section class="section dark noise scanlines">
+  <div class="container">
+    <div class="glass link-card rv">
+      <p>本工作站为同一课题组基于东高垣村实践开发的配套治理工具，服务于光伏项目的长效运营与村庄治理现代化。整村建设方案、收益测算与合同模板见关联方案站点。</p>
+      <a class="btn btn-gold" href="https://lx-marx.github.io/gongfulu/">查看光伏建设方案 →</a>
+    </div>
+  </div>
+</section>
+
+<script src="assets/js/main.js"></script>
+</body>
+</html>

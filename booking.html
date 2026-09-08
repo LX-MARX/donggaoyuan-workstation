@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>预约调研 · 沐光共富</title>
+<meta name="description" content="预约驻村调研：在线问卷、电话、邮箱三种方式。服务范围全国，需提前 15—30 天预约。">
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/main.css">
+<style>
+.book-hero{min-height:52vh;display:flex;align-items:center;background:var(--abyss);position:relative;overflow:hidden;padding:150px 0 60px;text-align:center}
+.book-hero .grid-bg{position:absolute;inset:0;background:linear-gradient(rgba(212,168,75,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(212,168,75,.05) 1px,transparent 1px);background-size:56px 56px;mask-image:radial-gradient(ellipse 80% 70% at 50% 40%,#000 30%,transparent 75%)}
+.book-hero .container{z-index:2}
+.way-card{text-align:center;padding:38px 28px;display:flex;flex-direction:column;align-items:center}
+.way-card .ic{width:52px;height:52px;color:var(--gold);margin-bottom:18px}
+.way-card h3{font-family:var(--serif);font-size:20px;font-weight:800;color:var(--moon);margin-bottom:8px}
+.way-card p{font-size:13px;color:#9FB4C8;flex:1}
+.way-card .btn{margin-top:22px}
+
+/* 问卷 */
+.survey{max-width:760px;margin:0 auto;padding:44px 46px}
+.f-row{margin-bottom:22px}
+.f-row label{display:block;font-size:12px;letter-spacing:.18em;color:var(--gold-warm);font-weight:700;margin-bottom:9px}
+.f-row input,.f-row textarea{width:100%;background:rgba(10,22,40,.7);border:1px solid rgba(212,168,75,.35);border-radius:10px;color:var(--moon);padding:13px 16px;font-size:14.5px;font-family:inherit;outline:none;transition:border-color .25s}
+.f-row input:focus,.f-row textarea:focus{border-color:var(--gold-warm)}
+.f-row textarea{resize:vertical;min-height:96px}
+.f-result{display:none;margin-top:26px;text-align:center;border:1px solid rgba(240,215,140,.5);border-radius:12px;padding:26px}
+.f-result .code{font-family:var(--mono);font-size:24px;font-weight:700;color:var(--gold-warm);letter-spacing:.06em;margin:10px 0}
+.config{display:flex;gap:34px;justify-content:center;flex-wrap:wrap;font-size:13px;color:#8FA8BF}
+.config b{color:var(--gold-warm);font-weight:600}
+</style>
+</head>
+<body data-page="booking">
+
+<!-- ================= 页头 ================= -->
+<section class="book-hero noise scanlines">
+  <div class="grid-bg"></div>
+  <div class="container">
+    <div class="kicker" style="justify-content:center">FIELD VISIT BOOKING</div>
+    <h1 class="display">预约调研</h1>
+    <p class="lead" style="margin:22px auto 0;text-align:center">数字治理工作站与整村光伏建设方案共用同一预约系统。三种方式，任选其一。</p>
+    <div class="config" style="margin-top:30px">
+      <span>联系人：<b>夏立轩</b></span>
+      <span>提前期：<b>15—30 天</b></span>
+      <span>服务范围：<b>全国</b></span>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 三种预约方式 ================= -->
+<section class="section jade noise" style="padding:90px 0">
+  <div class="container">
+    <div class="grid-3">
+      <div class="glass way-card rv">
+        <svg class="ic" viewBox="0 0 52 52" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="6" width="34" height="40" rx="4"/><line x1="17" y1="16" x2="35" y2="16"/><line x1="17" y1="24" x2="35" y2="24"/><line x1="17" y1="32" x2="28" y2="32"/><path d="M33 36l4 4 7-8" stroke="#F0D78C"/></svg>
+        <h3>① 在线问卷预约</h3>
+        <p>5 题极简表单，提交后生成预约编号，我们将在 3 个工作日内与您联系确认行程。</p>
+        <a class="btn btn-gold" href="#survey">填写预约问卷</a>
+      </div>
+      <div class="glass way-card rv">
+        <svg class="ic" viewBox="0 0 52 52" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8h8l4 10-5 4a26 26 0 0 0 11 11l4-5 10 4v8a3 3 0 0 1-3 3A38 38 0 0 1 9 11a3 3 0 0 1 3-3z"/></svg>
+        <h3>② 电话预约</h3>
+        <p>工作时间直接致电，沟通村庄基本情况与调研意向，最快当日确认。</p>
+        <a class="btn btn-gold" href="tel:13721171245">直接致电 13721171245</a>
+      </div>
+      <div class="glass way-card rv">
+        <svg class="ic" viewBox="0 0 52 52" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="11" width="38" height="30" rx="4"/><path d="M7 15l19 14L45 15"/></svg>
+        <h3>③ 邮箱预约</h3>
+        <p>发送邮件预约，主题与正文模板已预填，补充村庄信息即可。</p>
+        <a class="btn btn-gold" id="mailBtn" href="mailto:1491568874@qq.com">发送邮件</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 预约问卷 ================= -->
+<section class="section dark noise scanlines" id="survey">
+  <div class="container">
+    <div class="section-head rv" style="text-align:center;margin-left:auto;margin-right:auto">
+      <div class="kicker" style="justify-content:center">预约问卷</div>
+      <h2 class="h-sec">5 道题，1 分钟填完</h2>
+    </div>
+    <div class="glass survey rv">
+      <form id="bookForm">
+        <div class="f-row"><label>1 · 您的姓名</label><input name="name" required placeholder="请输入姓名"></div>
+        <div class="f-row"><label>2 · 所在单位</label><input name="org" required placeholder="例如：某县发展改革局／某村两委／某企业"></div>
+        <div class="f-row"><label>3 · 联系电话</label><input name="tel" required type="tel" placeholder="用于确认调研行程"></div>
+        <div class="f-row"><label>4 · 意向村庄</label><input name="village" required placeholder="省／市／县／镇／村"></div>
+        <div class="f-row"><label>5 · 村庄基本情况</label><textarea name="intro" placeholder="户数、屋顶资源、是否已有光伏项目、主要需求……"></textarea></div>
+        <button class="btn btn-gold" type="submit" style="width:100%;justify-content:center">提交预约</button>
+      </form>
+      <div class="f-result" id="bookResult">
+        <div style="font-size:13px;letter-spacing:.2em;color:#8FA8BF" id="bookStatus">预约已登记（前端模拟提交）</div>
+        <div class="code" id="bookCode"></div>
+        <div style="font-size:13px;color:#9FB4C8" id="bookTip">请妥善保存编号。团队将按编号在 3 个工作日内电话联系您；也可直接致电 13721171245 加速确认。</div>
+        <button class="btn btn-gold btn-sm no-print" id="receiptBtn" type="button" style="margin:18px auto 0;display:none">下载登记凭证</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 登记凭证打印隔离区（屏幕不显示，仅“下载登记凭证”调用打印隔离时输出） ================= -->
+<div id="receipt" style="display:none">
+  <div style="max-width:640px;margin:0 auto;padding:10mm 4mm;color:#000;font-family:var(--serif)">
+    <h3 style="text-align:center;font-size:20px;letter-spacing:.18em;margin-bottom:6px">驻村调研预约登记凭证</h3>
+    <p style="text-align:center;font-size:12px;color:#444;margin-bottom:22px">东高垣数字治理工作站 · 预约登记系统</p>
+    <table style="width:100%;border-collapse:collapse;font-size:13.5px" id="rcTable"></table>
+    <p id="rcStamp" style="font-size:13px;margin-top:22px"></p>
+    <p style="text-align:right;font-size:14px;margin-top:46px;letter-spacing:.1em">东高垣数字治理工作站</p>
+    <p id="rcDate" style="text-align:right;font-size:14px;margin-top:6px;letter-spacing:.1em"></p>
+  </div>
+</div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/main.js"></script>
+<script>
+(function () {
+  /* 邮箱预填主题与正文模板 */
+  var subject = "驻村调研预约——沐光共富";
+  var body = "夏老师您好：\n\n我们单位希望预约驻村调研，基本信息如下：\n姓名：\n单位：\n联系电话：\n意向村庄（省/市/县/镇/村）：\n村庄基本情况（户数、屋顶资源、已有光伏项目情况、主要需求）：\n期望调研时间：\n\n（预约需提前 15—30 天，服务范围全国）";
+  document.getElementById("mailBtn").href = "mailto:1491568874@qq.com?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+
+  /* 问卷提交：云端数据库优先（成功用返回记录 id 生成 DGY-YYYYMMDD-id 编号），失败回退前端模拟提交 */
+  var form = document.getElementById("bookForm");
+  var result = document.getElementById("bookResult");
+  var statusEl = document.getElementById("bookStatus");
+  var codeEl = document.getElementById("bookCode");
+  var tipEl = document.getElementById("bookTip");
+  var receiptBtn = document.getElementById("receiptBtn");
+  var lastReceipt = null;
+
+  function ymd(d) { return d.getFullYear() + String(d.getMonth() + 1).padStart(2, "0") + String(d.getDate()).padStart(2, "0"); }
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var fd = new FormData(form);
+    var name = String(fd.get("name") || "").trim();
+    var org = String(fd.get("org") || "").trim();
+    var tel = String(fd.get("tel") || "").trim();
+    var village = String(fd.get("village") || "").trim();
+    var intro = String(fd.get("intro") || "").trim();
+    /* 必填校验：意向村庄／联系人姓名／联系电话 */
+    if (!village || !name || !tel) {
+      statusEl.textContent = "信息不完整，未提交";
+      codeEl.textContent = "——";
+      tipEl.textContent = "请完整填写您的姓名、联系电话与意向村庄后再提交。";
+      receiptBtn.style.display = "none";
+      result.style.display = "block";
+      result.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    var submitBtn = form.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    var d = new Date();
+    var dateStr = d.getFullYear() + " 年 " + (d.getMonth() + 1) + " 月 " + d.getDate() + " 日";
+    var stamp = dateStr + " " +
+      String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+    statusEl.textContent = "正在提交预约……";
+    codeEl.textContent = "——";
+    result.style.display = "block";
+
+    function finish(code, online) {
+      statusEl.textContent = online ? "预约已登记（云端数据库实时提交）" : "预约已登记（前端模拟提交）";
+      codeEl.textContent = code;
+      tipEl.textContent = online
+        ? "请妥善保存编号。团队将按编号在 3 个工作日内电话联系您；也可直接致电 13721171245 加速确认。"
+        : "请妥善保存编号。团队将按编号在 3 个工作日内电话联系您；也可直接致电 13721171245 加速确认。当前为离线缓存模式，登记未上传，建议同时通过邮件或电话确认。";
+      lastReceipt = { code: code, name: name, org: org, tel: tel, village: village, intro: intro, stamp: stamp, date: dateStr, online: online };
+      receiptBtn.style.display = online ? "inline-block" : "none";
+      result.scrollIntoView({ behavior: "smooth", block: "center" });
+      form.reset();
+      submitBtn.disabled = false;
+    }
+
+    var offlineCode = "MG-" + ymd(d) + "-" + String(Math.floor(Math.random() * 900) + 100);
+    if (!window.MG) { finish(offlineCode, false); return; }
+    MG.book({
+      site: "workstation",
+      village: village,
+      contact: name,
+      phone: tel,
+      needs: "所在单位：" + org + (intro ? "；村庄基本情况：" + intro : "")
+    }).then(function (rows) {
+      if (rows && rows.length && rows[0].id != null) finish("DGY-" + ymd(d) + "-" + rows[0].id, true);
+      else finish(offlineCode, false);
+    });
+  });
+
+  /* 下载登记凭证：填充打印隔离区后调用打印（A4，另存为 PDF 即可下载） */
+  receiptBtn.addEventListener("click", function () {
+    if (!lastReceipt) return;
+    var r = lastReceipt;
+    function row(k, v) {
+      return '<tr><td style="border:1px solid #999;padding:8px 12px;width:118px;background:#f5f5f5;font-weight:700">' + k +
+        '</td><td style="border:1px solid #999;padding:8px 12px">' + esc(v || "——") + "</td></tr>";
+    }
+    document.getElementById("rcTable").innerHTML =
+      row("登记编号", r.code) + row("姓名", r.name) + row("所在单位", r.org) +
+      row("联系电话", r.tel) + row("意向村庄", r.village) + row("村庄基本情况", r.intro) +
+      row("登记日期", r.date) +
+      row("提交方式", r.online ? "云端数据库实时提交" : "前端模拟提交");
+    document.getElementById("rcStamp").textContent = "提交时间：" + r.stamp;
+    document.getElementById("rcDate").textContent = r.date;
+    window.WS.printZone(document.getElementById("receipt"));
+  });
+})();
+</script>
+</body>
+</html>
