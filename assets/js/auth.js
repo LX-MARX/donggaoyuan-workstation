@@ -32,20 +32,38 @@
   }
 
   /* ---------- 账号 ---------- */
+  /* 手机号映射伪邮箱：Supabase 只认邮箱认证，11 位手机号（1 开头）统一映射到
+     {手机号}@phone.muguang，用户侧无感；其他输入按原样当邮箱处理 */
+  var PHONE_DOMAIN = "@phone.muguang";
+  function asPhone(x) { return /^1\d{10}$/.test(x) ? x : null; }
+  function toEmail(x) { var p = asPhone(x); return p ? p + PHONE_DOMAIN : x; }
   // 角色不进注册请求：一律先落成普通用户，管理员走申请审批（profiles 表服务端裁决）
-  function signUp(email, password, displayName) {
+  function signUp(account, password, displayName) {
+    var phone = asPhone(String(account).trim());
     return call("/auth/v1/signup", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: email, password: password, data: { display_name: displayName } })
+      body: JSON.stringify({ email: toEmail(String(account).trim()), password: password, data: { display_name: displayName } })
     }).then(function (j) {
       if (j && j.access_token) saveSession(j);
+      /* 手机号注册的顺手把号码写进 profiles.phone；
+         profiles 行由触发器在注册后生成，偶尔慢半拍，补一次重试 */
+      if (phone && j && j.user && j.user.id) {
+        var writePhone = function () {
+          call("/rest/v1/profiles?id=eq." + j.user.id, {
+            method: "PATCH", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phone: phone })
+          }, true).catch(function () { });
+        };
+        writePhone();
+        setTimeout(writePhone, 1500);
+      }
       return j;
     });
   }
-  function signIn(email, password) {
+  function signIn(account, password) {
     return call("/auth/v1/token?grant_type=password", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: email, password: password })
+      body: JSON.stringify({ email: toEmail(String(account).trim()), password: password })
     }).then(function (j) { if (j && j.access_token) saveSession(j); return j; });
   }
   function signOut() {
@@ -116,6 +134,13 @@
       body: JSON.stringify({ app_id: appId, approve: !!approve })
     }, true);
   }
+  /* 直接调整用户角色（用户列表里的按钮用）；仅管理员可调，服务端自动写 admin_actions 日志 */
+  function setUserRole(target, newRole) {
+    return call("/rest/v1/rpc/set_user_role", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ target: target, new_role: newRole })
+    }, true);
+  }
 
   /* ---------- 管理员数据 ---------- */
   function adminList(table, order) {
@@ -145,7 +170,8 @@
       session: session, signUp: signUp, signIn: signIn, signOut: signOut,
       user: user, profile: profile, isAdmin: isAdmin,
       applyAdmin: applyAdmin, myAdminApplication: myAdminApplication,
-      adminApplications: adminApplications, reviewAdminApplication: reviewAdminApplication
+      adminApplications: adminApplications, reviewAdminApplication: reviewAdminApplication,
+      setUserRole: setUserRole, asPhone: asPhone
     },
     formSave: formSave, formList: formList, formDelete: formDelete,
     evalSubmit: evalSubmit,

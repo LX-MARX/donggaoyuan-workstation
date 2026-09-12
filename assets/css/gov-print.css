@@ -1,0 +1,49 @@
+/* ============================================================
+   公文打印样式（仅打印时生效，屏幕样式一律不动）
+   依据《党政机关公文格式》习惯口径：正文仿宋三号、标题小标宋二号、
+   一级标题黑体、二级楷体、三级仿宋加粗、表格用三线表。
+   使用方式：容器加 .gov-doc，标题加 .gov-title/.gov-h1/.gov-h2/.gov-h3，表格加 .gov-tbl。
+   ============================================================ */
+@page{size:A4;margin:20mm 18mm}
+
+@media print{
+
+  /* 正文：仿宋_GB2312 三号（16pt），行距固定 28pt。
+     Times New Roman 排最前——中文找不到字形会自动落到后面的仿宋，
+     数字和英文就能用 Times，不用逐处包 span */
+  .gov-doc{
+    font-family:"Times New Roman","仿宋_GB2312","FangSong_GB2312","FangSong","仿宋",serif!important;
+    font-size:16pt;line-height:28pt;color:#000!important;
+  }
+  .gov-doc *{color:#000!important;text-shadow:none!important;box-shadow:none!important}
+
+  /* 标题：方正小标宋简体 二号（22pt）居中，行距 34pt */
+  .gov-doc .gov-title,.gov-title{
+    font-family:"方正小标宋简体","FZXiaoBiaoSong-B05S","小标宋体",SimSun,serif!important;
+    font-size:22pt;line-height:34pt;text-align:center;font-weight:700;letter-spacing:.06em;
+    margin:0 0 18pt;color:#000!important;
+  }
+
+  /* 一二三级标题：黑体 / 楷体加粗 / 仿宋加粗，都是三号 */
+  .gov-doc .gov-h1,.gov-h1{font-family:"黑体",SimHei,sans-serif!important;font-size:16pt;font-weight:700;line-height:28pt;margin:12pt 0 6pt}
+  .gov-doc .gov-h2,.gov-h2{font-family:"楷体_GB2312","KaiTi_GB2312",KaiTi,"楷体",serif!important;font-size:16pt;font-weight:700;line-height:28pt;margin:10pt 0 4pt}
+  .gov-doc .gov-h3,.gov-h3{font-family:"仿宋_GB2312","FangSong_GB2312",FangSong,"仿宋",serif!important;font-size:16pt;font-weight:700;line-height:28pt;margin:8pt 0 4pt}
+
+  /* 三线表：宋体四号（14pt），顶线 1.5pt／栏目线 0.75pt／底线 1.5pt，不要竖线。
+     边框全部 !important：站点基础表样式（main.css table.tb）带全框线，优先级压不住就得硬来 */
+  .gov-tbl{
+    width:100%;border-collapse:collapse;
+    font-family:"Times New Roman",SimSun,"宋体",serif!important;font-size:14pt;color:#000!important;
+    border-top:1.5pt solid #000!important;border-bottom:1.5pt solid #000!important;
+    border-left:none!important;border-right:none!important;
+    background:#fff!important;
+  }
+  .gov-tbl th,.gov-tbl td{
+    padding:6pt 8pt;border:none!important;background:#fff!important;color:#000!important;
+    text-align:left;vertical-align:top;
+  }
+  .gov-tbl thead th{border-bottom:.75pt solid #000!important;font-weight:700}
+
+  /* 打印隔离区里的控件（按钮、输入框）本来就不该出现在纸上 */
+  .pz-live button,.pz-live input,.pz-live select,.pz-live textarea{display:none!important}
+}

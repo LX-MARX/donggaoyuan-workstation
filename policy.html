@@ -6,7 +6,8 @@
 <title>政策智库 · 东高垣数字治理工作站</title>
 <meta name="description" content="119 条五级政策文本的结构化数据库与智能分析：检索控制台、3D 政策层级塔、演进时间轴、口径问答生成。">
 <link rel="icon" href="assets/img/logo.png">
-<link rel="stylesheet" href="assets/css/main.css?v=20260910">
+<link rel="stylesheet" href="assets/css/main.css?v=20260912">
+<link rel="stylesheet" href="assets/css/gov-print.css?v=20260912">
 <style>
 /* 页头样式已上收 assets/css/main.css（.page-hero/.grid-bg/.hero-cols/.page-sub） */
 
@@ -32,6 +33,10 @@
 .pitem .pm{font-size:12px;color:#8FA8BF;margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
 .pitem .pm .lv{color:var(--gold-warm);border:1px solid rgba(212,168,75,.4);border-radius:99px;padding:0 10px;font-size:11px}
 .pitem .ps{font-size:12.5px;color:#9FB4C8;margin-top:6px}
+/* 每条政策自带的主题小标签：点了就是选中这个主题筛选，比翻标签云快 */
+.ptags{margin-top:9px}
+.ptag{padding:3px 12px;margin:0 6px 4px 0;border-radius:99px;font-size:11px;letter-spacing:.05em;border:1px solid rgba(212,168,75,.45);color:var(--gold-warm);background:transparent;transition:all .25s;cursor:pointer}
+.ptag:hover{background:rgba(212,168,75,.16)}
 .results::-webkit-scrollbar{width:8px}.results::-webkit-scrollbar-thumb{background:rgba(212,168,75,.3);border-radius:4px}
 
 /* ================= 3D 政策层级塔 ================= */
@@ -114,7 +119,6 @@
 .qa-doc .seal{margin-top:28px;display:flex;justify-content:flex-end}
 .qa-doc .seal span{width:120px;height:120px;border:2px dashed rgba(200,75,63,.55);border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;color:rgba(200,75,63,.8);line-height:1.6;padding:12px}
 .qa-warn{margin-top:14px;font-size:12px;color:var(--cinnabar)}
-@media print{body *{visibility:hidden}#qaPrint,#qaPrint *{visibility:visible}#qaPrint{position:absolute;left:0;top:0;width:100%;padding:10mm}}
 </style>
 </head>
 <body data-page="policy">
@@ -221,10 +225,10 @@
           <button class="btn btn-gold btn-sm" id="qaGen">生成</button>
         </div>
         <p class="qa-warn">提示：生成结果为答复草稿，仅供参考；口径问答书须经县级能源主管部门或发展改革部门核实并盖章后方可作为宣讲依据。</p>
-        <button class="btn btn-ghost btn-sm no-print" style="margin-top:18px;color:var(--gold);border-color:rgba(212,168,75,.55)" onclick="window.print()">打印为 A4 问答书</button>
+        <button class="btn btn-ghost btn-sm no-print" style="margin-top:18px;color:var(--gold);border-color:rgba(212,168,75,.55)" onclick="WS.printZone('#qaPrint','政策口径问答书')">打印为 A4 问答书</button>
       </div>
-      <div class="qa-doc rv" id="qaPrint">
-        <h4>政策口径问答书</h4>
+      <div class="qa-doc gov-doc rv" id="qaPrint">
+        <h4 class="gov-title">政策口径问答书</h4>
         <div class="qn" id="qaNo">编号：KL-—————— · 成文日期：　　年　　月　　日 · 状态：草稿</div>
         <div class="row"><b>问　题</b><span id="qaQ">请先在左侧选择或输入问题。</span></div>
         <div class="row"><b>答　复</b><span id="qaA">——</span></div>
@@ -236,10 +240,11 @@
   </div>
 </section>
 
-<script src="assets/js/data.js?v=20260910"></script>
-<script src="assets/js/config.js?v=20260910"></script>
-<script src="assets/js/api.js?v=20260910"></script>
-<script src="assets/js/main.js?v=20260910"></script>
+<script src="assets/js/data.js?v=20260912"></script>
+<script src="assets/js/faq.js?v=20260912"></script>
+<script src="assets/js/config.js?v=20260912"></script>
+<script src="assets/js/api.js?v=20260912"></script>
+<script src="assets/js/main.js?v=20260912"></script>
 <script>
 (function () {
   "use strict";
@@ -253,7 +258,13 @@
     { key: "year", label: "年份", tags: ["全部", "2026", "2025", "2024", "2023", "2022 及以前"] },
     { key: "org", label: "机关", tags: ["全部", "中共中央国务院", "国家部委", "省级机关", "市级机关", "县级机关", "镇村"] }
   ];
-  var flt = { level: "全部", domain: "全部", year: "全部", org: "全部" }, q = "";
+  /* 主题标签云：词频直接拿本地 119 条政策的 topics 实算，取前 12 个高频主题。
+     不写死词表——库里政策增减时标签会跟着变，人工维护迟早忘了同步 */
+  var topicFreq = {};
+  D.policies.forEach(function (p) { (p.topics || []).forEach(function (t) { topicFreq[t] = (topicFreq[t] || 0) + 1; }); });
+  var TOP_TOPICS = Object.keys(topicFreq).sort(function (a, b) { return topicFreq[b] - topicFreq[a]; }).slice(0, 12);
+  TAG_GROUPS.push({ key: "topic", label: "主题", tags: ["全部"].concat(TOP_TOPICS) });
+  var flt = { level: "全部", domain: "全部", year: "全部", org: "全部", topic: "全部" }, q = "";
   var tagsEl = document.getElementById("tags"), resEl = document.getElementById("results"), statEl = document.getElementById("stat");
   var srcEl = document.getElementById("srcStat");
   /* 云端行（snake_case）归一化为本地字段（camelCase），保证下游渲染逻辑一致 */
@@ -334,6 +345,8 @@
       else if (y !== flt.year) return false;
     }
     if (flt.org !== "全部" && orgOf(p) !== flt.org) return false;
+    /* 主题筛选：政策自己的 topics 里含选中主题才算命中 */
+    if (flt.topic !== "全部" && (p.topics || []).indexOf(flt.topic) < 0) return false;
     if (!q) return true;
     var hay = (p.title + " " + (p.docNo || "") + " " + (p.org || "") + " " + (p.topics || []).join(" ")).toLowerCase();
     return q.toLowerCase().split(/\s+/).every(function (w) { return hay.indexOf(w) >= 0; });
@@ -346,12 +359,22 @@
       (active.length ? " 丨 " + active.join(" 丨 ") : "");
     resEl.innerHTML = list.slice(0, 120).map(function (p) {
       var y = yearOf(p);
+      var chips = (p.topics || []).map(function (t) { return '<button class="ptag" type="button" data-topic="' + t + '">' + t + "</button>"; }).join("");
       return '<div class="pitem"><div class="pt">' + p.title + '</div><div class="pm"><span class="lv">' + p.level + " · " + p.level5 + "</span>" +
         (y ? '<span class="lv">' + y + " 年</span>" : "") +
-        "<span>" + p.org + "</span><span>" + (p.docNo || "无文号") + "</span><span>" + p.date + '</span></div><div class="ps">' + p.applyPoint + "</div></div>";
+        "<span>" + p.org + "</span><span>" + (p.docNo || "无文号") + "</span><span>" + p.date + '</span></div><div class="ps">' + p.applyPoint + "</div>" +
+        (chips ? '<div class="ptags">' + chips + "</div>" : "") + "</div>";
     }).join("") || '<div class="pitem"><div class="pt">未检索到匹配政策，请调整关键词或筛选标签。</div></div>';
     if (list.length > 120) resEl.innerHTML += '<div class="pitem"><div class="pm">仅显示前 120 条，请增加关键词缩小范围。</div></div>';
   }
+  /* 点政策卡片上的主题 chip ＝ 选中该主题筛选（再点标签云里的「全部」取消） */
+  resEl.addEventListener("click", function (e) {
+    var b = e.target.closest(".ptag"); if (!b) return;
+    var t = b.getAttribute("data-topic");
+    flt.topic = (flt.topic === t) ? "全部" : t;
+    renderTags();
+    render();
+  });
   renderTags();
   render();
   syncPolicies(); /* 首屏先出本地缓存，随后尝试切换云端实时数据 */
@@ -432,97 +455,8 @@
   pc.querySelectorAll(".rv").forEach(function (el) { el.classList.add("on"); });
 
   /* ================= 口径问答生成器 ================= */
-  /* 口径语料 22 条：k 为自定义问题的匹配关键词，命中数最多者作为参照口径 */
-  var QA = [
-    { q: "“531”新政后，我家的租金会不会少？",
-      a: "不会。屋顶租金按合同约定执行，标准为 30 元/块/年（人字坡 15 元/块/年），25 年租期内标准不变；租金与上网电价脱钩，电价市场化改革不影响存量项目农户租金。",
-      b: "《关于深化新能源上网电价市场化改革促进新能源高质量发展的通知》（发改价格〔2025〕136 号）；《中华人民共和国民法典》合同编。",
-      t: "存量项目农户（已并网）", k: ["租金", "会不会少", "30 元", "钱变少"] },
-    { q: "现在新装光伏，电价还按 0.3545 元一度算吗？",
-      a: "不能。“531”新政后，新增项目上网电价通过市场交易形成，0.3545 元/kWh 脱硫煤标杆电价口径仅适用于存量项目。新增项目经济性须按市场化电价重新测算。",
-      b: "《关于深化新能源上网电价市场化改革促进新能源高质量发展的通知》（发改价格〔2025〕136 号）及省级实施方案。",
-      t: "增量项目（新政后新备案）", k: ["电价", "0.3545", "标杆", "一度"] },
-    { q: "已签约但还没并网的项目，按什么政策执行？",
-      a: "过渡期待建项目的结算口径，以县级能源主管部门核实后的书面答复为准；在书面口径下发前，镇、村宣讲一律不得口头承诺电价与补贴标准。",
-      b: "《关于深化新能源上网电价市场化改革促进新能源高质量发展的通知》（发改价格〔2025〕136 号）；《光伏村建设手册》8.5 节口径问答规则。",
-      t: "待建项目（已签约未并网）", k: ["已签约", "待建", "还没并网", "过渡", "未并网"] },
-    { q: "屋顶光伏板漏水了找谁修？",
-      a: "由投资建设方 H 光伏公司（省属国有企业）负责维修，运营方 G 项目运营公司受理工单。农户可通过电表箱电话、热线或村两委转办报修，处置全程以运维工单留痕，办结后 3 日内回访。",
-      b: "《关于进一步组织实施好“千家万户沐光行动”的通知》（国能综通新能〔2025〕44 号）；屋顶租赁合同维修条款。",
-      t: "全体装机农户", k: ["漏", "修", "维修", "报修", "漏水"] },
-    { q: "“零首付、高额返利”的光伏推销可信吗？",
-      a: "不可信，须高度警惕。东高垣村前期有个别小型光伏企业以“零首付安装”“高额返利”为噱头骗取村民身份信息办理贷款，已形成负面教训。正规整村项目农户零出资、不贷款、不担保；凡要求农户提供身份证办卡、签字贷款的，一律拒绝并立即报告村两委。",
-      b: "国能综通新能〔2025〕44 号文件关于规范市场秩序的要求；《光伏村建设手册》宣传动员篇骗局识别口径。",
-      t: "全体农户", k: ["零首付", "返利", "骗", "贷款", "推销", "可信"] },
-    { q: "签约要交押金、手续费吗？",
-      a: "不交。整村分布式光伏入户项目农户零成本参与，不收取任何押金、手续费、保证金。凡以各种名义向农户收费的均属违规，可向镇政府或县发改部门举报。",
-      b: "国能综通新能〔2025〕44 号文件；县级整县推进实施方案。",
-      t: "拟签约农户", k: ["押金", "手续费", "收费", "保证金", "交钱"] },
-    { q: "屋顶租金怎么发、多久发一次？",
-      a: "租金按合同约定周期由企业直接支付到农户本人账户，不经过任何个人账户中转。东高垣村现行口径为按年支付，标准为 30 元/块/年（人字坡 15 元/块/年）；村两委可对照台账核实到户情况，农户发现未按时到账可向村两委或运营方查询。",
-      b: "屋顶租赁合同支付条款；村两委收益台账制度。",
-      t: "全体装机农户", k: ["发钱", "到账", "什么时候发", "支付", "发放"] },
-    { q: "什么是“光伏养老”？",
-      a: "“光伏养老”是本项目从东高垣村实践中提炼的增收机制：农户屋顶空间资源经资本化、契约化路径转化为稳定财产性收入，屋顶租金按 25 年租期、30 元/块/年标准持续支付，户均年租金 1500—2000 元，无需劳动投入、不受务工波动影响，构成农村老年人稳定的补充养老现金流。",
-      b: "课题组机制研究成果；《光伏村建设手册》“光伏养老”专章。",
-      t: "农村老年人及其家庭", k: ["养老", "老人", "光伏养老"] },
-    { q: "合同一般签多少年？到期后怎么办？",
-      a: "租期为 25 年。到期后的处置方式以合同约定为准，一般约定优先续租或由企业无偿拆除并恢复屋顶原状；签约时务必逐条看清期满处置、提前解约与违约责任条款，不清楚的当场问清再签。",
-      b: "屋顶租赁合同期满处置条款；《中华人民共和国民法典》合同编。",
-      t: "拟签约农户", k: ["多少年", "到期", "25 年", "期满", "租期"] },
-    { q: "房子以后要翻修、拆迁，光伏板怎么办？",
-      a: "合同中应明确约定房屋翻修、拆迁情形下的拆装责任与费用承担：由企业负责拆装并承担相应费用，农户须提前书面告知。签约时发现合同没有此类条款的，应要求补充后再签。",
-      b: "屋顶租赁合同变更与解除条款；《光伏村建设手册》签约组织篇。",
-      t: "有建房计划的农户", k: ["翻修", "拆迁", "盖房", "拆", "重建"] },
-    { q: "光伏板有辐射吗？住着安全吗？",
-      a: "光伏组件发电过程不产生有害电磁辐射，安全性有国家标准保障。日常注意保持检修通道畅通、不私拉乱接电线；发现组件异常发热、冒烟、异响，立即远离并通过报修渠道处置。",
-      b: "光伏组件国家强制性安全标准；《光伏村建设手册》运维协同篇安全条款。",
-      t: "全体装机农户", k: ["辐射", "安全", "着火", "冒烟", "危害"] },
-    { q: "光伏板遮挡邻居采光，引起纠纷怎么办？",
-      a: "先由村两委依据村庄规划和相邻关系规定组织调解；调解不成的报镇政府处理，必要时通过法律途径解决。安装前的房屋筛选规则已把遮光因素纳入排除项，源头上减少此类纠纷。",
-      b: "《中华人民共和国民法典》相邻关系规定；《光伏村建设手册》房屋筛选规则与纠纷调处流程。",
-      t: "相关农户、村两委", k: ["遮光", "采光", "邻居", "纠纷", "挡光"] },
-    { q: "怎么查自家电站发了多少电、结了多少钱？",
-      a: "可通过本工作站“数据看板”页面查询发电量与收益数据，也可向运营方 G 项目运营公司或村两委查询结算单据。全部结算数据按月留痕，农户有权随时核对。",
-      b: "村两委数据公开制度；运维工单与结算台账。",
-      t: "全体装机农户", k: ["查", "发电量", "结算", "多少电", "多少钱"] },
-    { q: "想装光伏，但房屋不符合条件怎么办？",
-      a: "房屋筛选规则明确：危房、产权有争议、遮光严重、结构承载不足的不予安装。可通过修缮加固消除安全隐患后申请复评，或向村两委登记候补，待条件具备后按序安排。",
-      b: "《光伏村建设手册》前期摸排篇房屋筛选规则。",
-      t: "未装机农户", k: ["不符合", "危房", "筛选", "候补", "装不了"] },
-    { q: "电网容量满了，还能装吗？",
-      a: "台区容量不足时暂停新增接入，农户可向村两委登记候补排队；待台区消纳能力提升工程完成后，按登记顺序依次安排接入。容量情况以电网企业核实意见为准。",
-      b: "电网企业台区容量核实规则；《光伏村建设手册》施工并网篇。",
-      t: "候补农户", k: ["容量", "电网", "满了", "排队", "消纳"] },
-    { q: "村干部组织签约，怎么操作才规范？",
-      a: "按《光伏村建设手册》流程执行：政策宣讲→意愿摸底→名单公示 7 天→集中签约→留痕归档，重大事项落实“四议两公开”。签约现场须逐户讲清租金标准、租期、维修责任与退出条款，不得代签、不得诱导签字。",
-      b: "《光伏村建设手册》签约组织篇；“四议两公开”工作法。",
-      t: "村两委干部", k: ["签约", "组织", "流程", "公示", "四议两公开"] },
-    { q: "光伏收益在村里怎么分配？",
-      a: "农户屋顶租金全额到户，村集体不得截留。村集体如按约定取得组织协调类收益，必须经“四议两公开”程序决定用途，纳入村务公开，接受村民监督。",
-      b: "村级财务管理制度；“四议两公开”工作法；收益分配监督条款。",
-      t: "村两委、全体村民", k: ["分配", "集体", "收益", "截留"] },
-    { q: "企业要是倒闭、跑路了怎么办？",
-      a: "本项目投资建设方为省属国有企业 H 光伏公司，运营方为 G 项目运营公司，企业资信有基本保障。合同明确运维责任承接与违约救济安排；万一发生经营风险，由县政府统筹处置，农户租金权益依法优先保障。",
-      b: "屋顶租赁合同违约救济条款；县级整县推进实施方案风险处置安排。",
-      t: "全体装机农户", k: ["倒闭", "跑路", "破产", "企业倒"] },
-    { q: "电价改革会影响村集体的收入吗？",
-      a: "存量项目租金与电价脱钩，不受影响。新增项目收益须按市场化电价重新测算，村集体应依据书面测算口径校准预期，不得沿用旧标杆电价对外宣传。",
-      b: "发改价格〔2025〕136 号文件；《光伏村建设手册》8.5 节口径问答规则。",
-      t: "村两委干部", k: ["村集体", "收入", "影响", "改革"] },
-    { q: "村民装了之后可以中途退出吗？",
-      a: "可以依约提前解约，但须按合同约定承担相应责任（一般为拆装与恢复原状费用）。退出前建议向村两委咨询违约责任测算，慎重决定。",
-      b: "屋顶租赁合同解除条款；《光伏村建设手册》明白纸退出提示。",
-      t: "拟退出农户", k: ["退出", "解约", "不装", "反悔"] },
-    { q: "农户拿租金要交税吗？",
-      a: "农户屋顶租金收入的涉税口径，以税务部门的书面答复为准；在书面口径明确前，村宣讲不作口头承诺，企业代扣代缴安排以合同约定与税务规定为准。",
-      b: "待税务部门核实后填写对应文件名与文号（模板见《光伏村建设手册》8.5 节）。",
-      t: "全体装机农户", k: ["税", "交税", "扣税"] },
-    { q: "怎么识别冒充正规企业的骗子？",
-      a: "记住“三查”：一查备案，向县发改部门核实企业是否进入整县推进备案名单；二查合同，与县级备案合同范本逐条比对；三查账户，租金、补贴只走企业公户与农户本人账户。凡进村的推销人员，先报村两委核验身份再接触。",
-      b: "国能综通新能〔2025〕44 号文件；《光伏村建设手册》骗局识别口径。",
-      t: "全体农户", k: ["冒充", "假", "识别", "骗子"] }
-  ];
+  /* 口径语料已抽到 assets/js/faq.js（window.MGFAQ），问答助手（chat.js）也读这份，别复制第二份 */
+  var QA = window.MGFAQ || [];
   var presets = document.getElementById("qaPresets");
   presets.innerHTML = QA.map(function (x, i) { return '<button class="qa-preset" data-i="' + i + '">' + x.q + "</button>"; }).join("");
   var today = new Date();
@@ -532,7 +466,9 @@
     document.getElementById("qaB").textContent = b;
     document.getElementById("qaT").textContent = t;
     var no = "KL-" + today.getFullYear() + String(today.getMonth() + 1).padStart(2, "0") + String(today.getDate()).padStart(2, "0") + "-001";
-    document.getElementById("qaNo").textContent = "编号：" + no + " · 成文日期：　　年　　月　　日 · 状态：草稿（待核实盖章）";
+    /* 成文日期自动填当天：以前留空是等打印后手写，但十次有九次没人写，干脆先填上 */
+    var ds = today.getFullYear() + " 年 " + (today.getMonth() + 1) + " 月 " + today.getDate() + " 日";
+    document.getElementById("qaNo").textContent = "编号：" + no + " · 成文日期：" + ds + " · 状态：草稿（待核实盖章）";
   }
   presets.addEventListener("click", function (e) {
     var b = e.target.closest(".qa-preset"); if (!b) return;

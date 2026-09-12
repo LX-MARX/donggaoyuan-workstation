@@ -6,7 +6,7 @@
 <title>我的账号 · 沐光共富</title>
 <meta name="description" content="东高垣数字治理工作站账号中心：登录后可云端保存村庄评估、预约与表格存档，项目管理员可进入数据管理台。">
 <link rel="icon" href="assets/img/logo.png">
-<link rel="stylesheet" href="assets/css/main.css?v=20260910">
+<link rel="stylesheet" href="assets/css/main.css?v=20260912">
 <style>
 .ac-hero{min-height:44vh;display:flex;align-items:center;background:var(--abyss);position:relative;overflow:hidden;padding:150px 0 60px;text-align:center}
 .ac-hero .grid-bg{position:absolute;inset:0;background:linear-gradient(rgba(212,168,75,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(212,168,75,.05) 1px,transparent 1px);background-size:56px 56px;mask-image:radial-gradient(ellipse 80% 70% at 50% 40%,#000 30%,transparent 75%)}
@@ -75,7 +75,7 @@
       </div>
 
       <div class="glass ac-panel rv" id="panelLogin">
-        <div class="f-row"><label>邮箱</label><input type="email" id="liEmail" placeholder="you@example.com" autocomplete="email"></div>
+        <div class="f-row"><label>邮箱或手机号</label><input type="text" id="liEmail" placeholder="you@example.com 或 11 位手机号" autocomplete="username"></div>
         <div class="f-row"><label>密码</label><input type="password" id="liPwd" placeholder="请输入密码" autocomplete="current-password"></div>
         <div class="ac-err" id="liErr"></div>
         <button class="btn btn-gold" id="btnLogin" style="width:100%;justify-content:center">登 录</button>
@@ -83,10 +83,10 @@
 
       <div class="glass ac-panel rv" id="panelReg" style="display:none">
         <div class="f-row"><label>显示名</label><input type="text" id="rgName" placeholder="如：东高垣村两委 · 王建国"></div>
-        <div class="f-row"><label>邮箱</label><input type="email" id="rgEmail" placeholder="you@example.com" autocomplete="email"></div>
+        <div class="f-row"><label>邮箱或手机号</label><input type="text" id="rgEmail" placeholder="you@example.com 或 11 位手机号" autocomplete="username"></div>
         <div class="f-row"><label>密码（至少 6 位）</label><input type="password" id="rgPwd" placeholder="至少 6 位" autocomplete="new-password"></div>
         <div class="f-row"><label>再次输入密码</label><input type="password" id="rgPwd2" placeholder="与上方密码保持一致" autocomplete="new-password"></div>
-        <p class="ac-note" style="margin:0 0 20px">注册即为普通用户，可云端保存测算、评估与表格存档。如需管理员权限，注册登录后可在本页提交申请，由项目组审核开通。</p>
+        <p class="ac-note" style="margin:0 0 20px">支持手机号或邮箱注册。注册即为普通用户，可云端保存测算、评估与表格存档。如需管理员权限，注册登录后可在本页提交申请，由项目组审核开通。</p>
         <label class="agree"><input type="checkbox" id="rgAgree"><span>我已知晓：注册信息仅用于本项目服务，不会用于其他用途。</span></label>
         <div class="ac-err" id="rgErr" style="margin-top:16px"></div>
         <button class="btn btn-gold" id="btnReg" style="width:100%;justify-content:center;margin-top:8px">注册并登录</button>
@@ -104,6 +104,7 @@
         <div style="flex:1;min-width:220px">
           <div style="font-size:21px;font-family:var(--serif);font-weight:800;color:var(--moon)" id="uName">—</div>
           <div style="font-size:13.5px;color:#9FB4C8;margin-top:2px" id="uEmail">—</div>
+          <div style="font-size:13.5px;color:#9FB4C8;margin-top:2px;display:none" id="uPhone">—</div>
           <div style="margin-top:8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
             <span class="badge badge-user" id="uRole">普通用户</span>
             <span style="font-size:12.5px;color:#8FA8BF" id="uSince"></span>
@@ -139,10 +140,10 @@
   </div>
 </section>
 
-<script src="assets/js/config.js?v=20260910"></script>
-<script src="assets/js/api.js?v=20260910"></script>
-<script src="assets/js/auth.js?v=20260910"></script>
-<script src="assets/js/main.js?v=20260910"></script>
+<script src="assets/js/config.js?v=20260912"></script>
+<script src="assets/js/api.js?v=20260912"></script>
+<script src="assets/js/auth.js?v=20260912"></script>
+<script src="assets/js/main.js?v=20260912"></script>
 <script>
 (function () {
   "use strict";
@@ -182,7 +183,7 @@
   $("btnLogin").addEventListener("click", function () {
     var email = $("liEmail").value.trim(), pwd = $("liPwd").value;
     showErr($("liErr"), "");
-    if (!email || !pwd) { showErr($("liErr"), "请填写邮箱和密码。"); return; }
+    if (!email || !pwd) { showErr($("liErr"), "请填写邮箱（或手机号）和密码。"); return; }
     var btn = $("btnLogin"); btn.disabled = true; btn.textContent = "登录中……";
     MG.auth.signIn(email, pwd).then(function () {
       toast("登录成功，欢迎回来。", true);
@@ -200,7 +201,8 @@
     var p1 = $("rgPwd").value, p2 = $("rgPwd2").value;
     showErr($("rgErr"), "");
     if (!name) { showErr($("rgErr"), "请填写显示名。"); return; }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr($("rgErr"), "请填写正确的邮箱地址。"); return; }
+    /* 邮箱或 11 位手机号（1 开头）均可，手机号由 auth.js 映射伪邮箱走认证 */
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && !/^1\d{10}$/.test(email)) { showErr($("rgErr"), "请填写正确的邮箱地址，或 11 位手机号。"); return; }
     if (p1.length < 6) { showErr($("rgErr"), "密码至少 6 位。"); return; }
     if (p1 !== p2) { showErr($("rgErr"), "两次输入的密码不一致。"); return; }
     if (!$("rgAgree").checked) { showErr($("rgErr"), "请勾选「信息仅用于项目服务」后再注册。"); return; }
@@ -229,11 +231,18 @@
     var name = meta.display_name || (u.email ? u.email.split("@")[0] : "用户");
     $("uAvatar").textContent = (name[0] || "用").toUpperCase();
     $("uName").textContent = name;
-    $("uEmail").textContent = u.email || "";
+    /* 手机号注册的用户邮箱是 {手机号}@phone.muguang 伪邮箱，直接展示会露馅，换成手机号显示 */
+    var rawEmail = u.email || "";
+    if (/@phone\.muguang$/.test(rawEmail)) {
+      $("uEmail").textContent = "手机号：" + rawEmail.split("@")[0];
+    } else {
+      $("uEmail").textContent = rawEmail;
+    }
     $("uSince").textContent = u.created_at ? "注册时间：" + fmtTime(u.created_at) : "";
     show("viewUser");
     MG.auth.profile().then(function (p) {
       if (p && p.display_name) { $("uName").textContent = p.display_name; $("uAvatar").textContent = p.display_name[0].toUpperCase(); }
+      if (p && p.phone) { $("uPhone").textContent = "绑定手机号：" + p.phone; $("uPhone").style.display = "block"; }
       var isAdm = p && p.role === "admin";
       var badge = $("uRole");
       badge.textContent = isAdm ? "项目管理员" : "普通用户";

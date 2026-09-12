@@ -6,11 +6,15 @@
 <title>数据管理台 · 沐光共富</title>
 <meta name="description" content="东高垣数字治理工作站数据管理台：预约登记、村庄评估、表格存档、政策与项目库维护、用户列表，仅项目管理员可见。">
 <link rel="icon" href="assets/img/logo.png">
-<link rel="stylesheet" href="assets/css/main.css?v=20260910">
+<link rel="stylesheet" href="assets/css/main.css?v=20260912">
 <style>
 .ad-hero{min-height:44vh;display:flex;align-items:center;background:var(--abyss);position:relative;overflow:hidden;padding:150px 0 60px;text-align:center}
 .ad-hero .grid-bg{position:absolute;inset:0;background:linear-gradient(rgba(212,168,75,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(212,168,75,.05) 1px,transparent 1px);background-size:56px 56px;mask-image:radial-gradient(ellipse 80% 70% at 50% 40%,#000 30%,transparent 75%)}
 .ad-hero .container{z-index:2}
+/* 副标题一句话必须一行放下：.lead 默认 max-width:820px 必折行，这里放开；
+   窄屏实在放不下才允许折行，不然会把「管理员审批」顶到第二行中间，很难看 */
+.ad-hero .lead{white-space:nowrap;max-width:none;color:#C6D3E0}
+@media(max-width:960px){.ad-hero .lead{white-space:normal}}
 .toast{position:fixed;top:86px;left:50%;transform:translateX(-50%);z-index:1200;max-width:min(560px,90vw);padding:12px 24px;border-radius:12px;font-size:14.5px;display:none;backdrop-filter:blur(8px);box-shadow:0 10px 34px rgba(0,0,0,.4)}
 .toast.ok{display:block;background:rgba(22,101,52,.92);color:#D1FAE5;border:1px solid rgba(110,231,183,.5)}
 .toast.err{display:block;background:rgba(58,26,22,.94);color:#F3C2BB;border:1px solid rgba(200,75,63,.6)}
@@ -103,6 +107,7 @@ table.adm tr.clickable:hover td{background:rgba(212,168,75,.07)}
         <button data-tab="lib" type="button">政策与项目库维护</button>
         <button data-tab="users" type="button">用户列表</button>
         <button data-tab="apps" type="button">管理员审批</button>
+        <button data-tab="logs" type="button">操作日志</button>
       </div>
 
       <!-- 预约登记 -->
@@ -146,6 +151,11 @@ table.adm tr.clickable:hover td{background:rgba(212,168,75,.07)}
         <div class="detail-h">历史记录</div>
         <div class="tbl-wrap" id="appsHistory"><div class="empty">读取中……</div></div>
       </div>
+
+      <!-- 操作日志 -->
+      <div class="panel" id="p-logs">
+        <div class="tbl-wrap" id="lgWrap"><div class="empty">读取中……</div></div>
+      </div>
     </div>
   </div>
 </section>
@@ -162,10 +172,10 @@ table.adm tr.clickable:hover td{background:rgba(212,168,75,.07)}
   </div>
 </div>
 
-<script src="assets/js/config.js?v=20260910"></script>
-<script src="assets/js/api.js?v=20260910"></script>
-<script src="assets/js/auth.js?v=20260910"></script>
-<script src="assets/js/main.js?v=20260910"></script>
+<script src="assets/js/config.js?v=20260912"></script>
+<script src="assets/js/api.js?v=20260912"></script>
+<script src="assets/js/auth.js?v=20260912"></script>
+<script src="assets/js/main.js?v=20260912"></script>
 <script>
 (function () {
   "use strict";
@@ -269,6 +279,7 @@ table.adm tr.clickable:hover td{background:rgba(212,168,75,.07)}
         else if (t === "lib") loadLib(curLib);
         else if (t === "users") loadUsers();
         else if (t === "apps") loadApps();
+        else if (t === "logs") loadLogs();
       }
     });
   });
@@ -512,14 +523,53 @@ table.adm tr.clickable:hover td{background:rgba(212,168,75,.07)}
     $("usWrap").innerHTML = '<div class="empty">读取中……</div>';
     listTable("profiles", "created_at.desc").then(function (rows) {
       if (!rows.length) { $("usWrap").innerHTML = '<div class="empty">暂无注册用户。</div>'; return; }
-      var html = '<table class="adm"><tr><th>邮箱</th><th>显示名</th><th>角色</th><th>注册时间</th></tr>';
+      var me = (MG.auth.session() || {}).user || {};
+      var html = '<table class="adm"><tr><th>邮箱</th><th>显示名</th><th>手机号</th><th>角色</th><th>注册时间</th><th>操作</th></tr>';
       rows.forEach(function (r) {
         var adm = r.role === "admin";
-        html += "<tr><td>" + clip(r.email) + "</td><td>" + clip(r.display_name) +
+        html += "<tr><td>" + clip(r.email) + "</td><td>" + clip(r.display_name) + "</td><td>" + clip(r.phone || "—") +
           '</td><td><span class="badge ' + (adm ? "badge-admin" : "badge-user") + '">' + (adm ? "项目管理员" : "普通用户") + "</span></td>" +
-          "<td>" + esc(fmtTime(r.created_at)) + "</td></tr>";
+          "<td>" + esc(fmtTime(r.created_at)) + "</td><td>" +
+          /* 自己那行不给按钮：把自己降级会当场把自己锁在管理台门外 */
+          (r.id === me.id ? '<span style="font-size:12px;color:#8FA8BF">（当前账号）</span>'
+            : '<button class="btn btn-ghost mini-btn" data-role-uid="' + esc(r.id) + '" data-role-to="' + (adm ? "user" : "admin") + '" type="button">' +
+              (adm ? "取消管理员" : "设为管理员") + "</button>") +
+          "</td></tr>";
       });
       $("usWrap").innerHTML = html + "</table>";
+      $("usWrap").querySelectorAll("[data-role-uid]").forEach(function (b) {
+        b.addEventListener("click", function () {
+          var uid = b.getAttribute("data-role-uid"), to = b.getAttribute("data-role-to");
+          var row = rows.filter(function (x) { return x.id === uid; })[0] || {};
+          var label = row.email || uid;
+          if (!confirm(to === "admin" ? "确定把「" + label + "」设为项目管理员吗？" : "确定取消「" + label + "」的管理员权限吗？")) return;
+          b.disabled = true;
+          MG.auth.setUserRole(uid, to).then(function () {
+            toast(to === "admin" ? "已设为项目管理员。" : "已取消管理员权限。", true);
+            loadUsers();
+          }).catch(function (e) {
+            b.disabled = false;
+            toast("操作失败：" + (e && e.message ? e.message : "网络异常"), false);
+          });
+        });
+      });
+    });
+  }
+
+  /* ================= 操作日志（admin_actions，邮箱经 profiles 映射） ================= */
+  function loadLogs() {
+    $("lgWrap").innerHTML = '<div class="empty">读取中……</div>';
+    Promise.all([listTable("admin_actions", "created_at.desc"), listTable("profiles", "created_at.desc")]).then(function (rs) {
+      var rows = rs[0], profiles = rs[1];
+      var emailOf = {};
+      profiles.forEach(function (p) { emailOf[p.id] = p.email || p.id; });
+      if (!rows.length) { $("lgWrap").innerHTML = '<div class="empty">暂无操作日志。</div>'; return; }
+      var html = '<table class="adm"><tr><th>时间</th><th>操作人</th><th>目标</th><th>动作</th><th>详情</th></tr>';
+      rows.forEach(function (r) {
+        html += "<tr><td style=\"white-space:nowrap\">" + esc(fmtTime(r.created_at)) + "</td><td>" + clip(emailOf[r.actor] || r.actor) +
+          "</td><td>" + clip(emailOf[r.target] || r.target) + "</td><td>" + clip(r.action) + "</td><td>" + clip(r.detail) + "</td></tr>";
+      });
+      $("lgWrap").innerHTML = html + "</table>";
     });
   }
 

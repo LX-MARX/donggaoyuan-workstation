@@ -214,11 +214,13 @@
   function mgBootAddons() {
     var base = "assets/js/", chain = [];
     if (!(window.MG && MG.auth)) {
-      if (!window.MG_CONFIG) chain.push(base + "config.js" + "?v=20260910");
-      if (!(window.MG && MG.book)) chain.push(base + "api.js" + "?v=20260910");
-      chain.push(base + "auth.js" + "?v=20260910");
+      if (!window.MG_CONFIG) chain.push(base + "config.js" + "?v=20260912");
+      if (!(window.MG && MG.book)) chain.push(base + "api.js" + "?v=20260912");
+      chain.push(base + "auth.js" + "?v=20260912");
     }
-    chain.push(base + "chat.js" + "?v=20260910", base + "tour.js" + "?v=20260910");
+    /* faq.js 必须在 chat.js 前面：问答助手先读本地语料，读不到才走云端 */
+    if (!window.MGFAQ) chain.push(base + "faq.js" + "?v=20260912");
+    chain.push(base + "chat.js" + "?v=20260912", base + "tour.js" + "?v=20260912");
     mgLoadChain(chain, mgRenderAccount);
     document.addEventListener("mg-auth-change", mgRenderAccount);
   }

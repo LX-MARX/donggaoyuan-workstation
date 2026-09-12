@@ -6,7 +6,8 @@
 <title>预约调研 · 沐光共富</title>
 <meta name="description" content="预约驻村调研：在线问卷、电话、邮箱三种方式。服务范围全国，需提前 15—30 天预约。">
 <link rel="icon" href="assets/img/logo.png">
-<link rel="stylesheet" href="assets/css/main.css?v=20260910">
+<link rel="stylesheet" href="assets/css/main.css?v=20260912">
+<link rel="stylesheet" href="assets/css/gov-print.css?v=20260912">
 <style>
 .book-hero{min-height:52vh;display:flex;align-items:center;background:var(--abyss);position:relative;overflow:hidden;padding:150px 0 60px;text-align:center}
 .book-hero .grid-bg{position:absolute;inset:0;background:linear-gradient(rgba(212,168,75,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(212,168,75,.05) 1px,transparent 1px);background-size:56px 56px;mask-image:radial-gradient(ellipse 80% 70% at 50% 40%,#000 30%,transparent 75%)}
@@ -101,19 +102,20 @@
 
 <!-- ================= 登记凭证打印隔离区（屏幕不显示，仅“下载登记凭证”调用打印隔离时输出） ================= -->
 <div id="receipt" style="display:none">
-  <div style="max-width:640px;margin:0 auto;padding:10mm 4mm;color:#000;font-family:var(--serif)">
-    <h3 style="text-align:center;font-size:20px;letter-spacing:.18em;margin-bottom:6px">驻村调研预约登记凭证</h3>
+  <div class="gov-doc" style="max-width:640px;margin:0 auto;padding:10mm 4mm;color:#000;font-family:var(--serif)">
+    <h3 class="gov-title" style="text-align:center;font-size:20px;letter-spacing:.18em;margin-bottom:6px">驻村调研预约登记凭证</h3>
     <p style="text-align:center;font-size:12px;color:#444;margin-bottom:22px">东高垣数字治理工作站 · 预约登记系统</p>
-    <table style="width:100%;border-collapse:collapse;font-size:13.5px" id="rcTable"></table>
+    <table class="gov-tbl" style="width:100%;border-collapse:collapse;font-size:13.5px" id="rcTable"></table>
+    <p id="rcOffline" style="display:none;font-size:13px;font-weight:700;margin-top:14px">※ 本凭证为离线登记（未同步云端），请同时通过电话或邮箱与项目组确认。</p>
     <p id="rcStamp" style="font-size:13px;margin-top:22px"></p>
     <p style="text-align:right;font-size:14px;margin-top:46px;letter-spacing:.1em">东高垣数字治理工作站</p>
     <p id="rcDate" style="text-align:right;font-size:14px;margin-top:6px;letter-spacing:.1em"></p>
   </div>
 </div>
 
-<script src="assets/js/config.js?v=20260910"></script>
-<script src="assets/js/api.js?v=20260910"></script>
-<script src="assets/js/main.js?v=20260910"></script>
+<script src="assets/js/config.js?v=20260912"></script>
+<script src="assets/js/api.js?v=20260912"></script>
+<script src="assets/js/main.js?v=20260912"></script>
 <script>
 (function () {
   /* 邮箱预填主题与正文模板 */
@@ -162,13 +164,14 @@
     result.style.display = "block";
 
     function finish(code, online) {
-      statusEl.textContent = online ? "预约已登记（云端数据库实时提交）" : "预约已登记（前端模拟提交）";
+      statusEl.textContent = online ? "预约已登记（云端数据库实时提交）" : "预约已登记（离线登记，未同步云端）";
       codeEl.textContent = code;
       tipEl.textContent = online
         ? "请妥善保存编号。团队将按编号在 3 个工作日内电话联系您；也可直接致电 13721171245 加速确认。"
         : "请妥善保存编号。团队将按编号在 3 个工作日内电话联系您；也可直接致电 13721171245 加速确认。当前为离线缓存模式，登记未上传，建议同时通过邮件或电话确认。";
       lastReceipt = { code: code, name: name, org: org, tel: tel, village: village, intro: intro, stamp: stamp, date: dateStr, online: online };
-      receiptBtn.style.display = online ? "inline-block" : "none";
+      /* 离线也要给凭证：云端断了不代表登记不作数，凭证上注明未同步即可 */
+      receiptBtn.style.display = "inline-block";
       result.scrollIntoView({ behavior: "smooth", block: "center" });
       form.reset();
       submitBtn.disabled = false;
@@ -192,15 +195,17 @@
   receiptBtn.addEventListener("click", function () {
     if (!lastReceipt) return;
     var r = lastReceipt;
+    /* 凭证表格用 .gov-tbl 三线表，不写内联边框——内联样式优先级太高，打印样式压不住 */
     function row(k, v) {
-      return '<tr><td style="border:1px solid #999;padding:8px 12px;width:118px;background:#f5f5f5;font-weight:700">' + k +
-        '</td><td style="border:1px solid #999;padding:8px 12px">' + esc(v || "——") + "</td></tr>";
+      return '<tr><td style="padding:8px 12px;width:118px;font-weight:700">' + k +
+        '</td><td style="padding:8px 12px">' + esc(v || "——") + "</td></tr>";
     }
     document.getElementById("rcTable").innerHTML =
       row("登记编号", r.code) + row("姓名", r.name) + row("所在单位", r.org) +
       row("联系电话", r.tel) + row("意向村庄", r.village) + row("村庄基本情况", r.intro) +
       row("登记日期", r.date) +
-      row("提交方式", r.online ? "云端数据库实时提交" : "前端模拟提交");
+      row("提交方式", r.online ? "云端数据库实时提交" : "离线登记（未同步云端）");
+    document.getElementById("rcOffline").style.display = r.online ? "none" : "block";
     document.getElementById("rcStamp").textContent = "提交时间：" + r.stamp;
     document.getElementById("rcDate").textContent = r.date;
     window.WS.printZone(document.getElementById("receipt"));

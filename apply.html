@@ -6,7 +6,8 @@
 <title>申报助手 · 东高垣数字治理工作站</title>
 <meta name="description" content="62 项可申报项目的智能匹配与流程导航：四条件环形筛选、材料清单、申报日历、材料合并器。">
 <link rel="icon" href="assets/img/logo.png">
-<link rel="stylesheet" href="assets/css/main.css?v=20260910">
+<link rel="stylesheet" href="assets/css/main.css?v=20260912">
+<link rel="stylesheet" href="assets/css/gov-print.css?v=20260912">
 <style>
 /* 页头样式已上收 assets/css/main.css（.page-hero/.grid-bg/.hero-cols/.page-sub） */
 
@@ -38,12 +39,13 @@ input[type=range]{width:100%;accent-color:var(--gold)}
 .res-head .x{font-family:var(--mono);font-size:clamp(30px,3.4vw,44px);font-weight:700;color:var(--gold);text-shadow:0 0 20px rgba(212,168,75,.3)}
 .res-list{display:flex;flex-direction:column;gap:14px;max-height:720px;overflow:auto;padding-right:6px}
 .res-list::-webkit-scrollbar{width:8px}.res-list::-webkit-scrollbar-thumb{background:rgba(18,35,58,.2);border-radius:4px}
-.res-item{background:#fff;border:1px solid rgba(18,35,58,.14);border-radius:14px;padding:18px 22px;cursor:pointer;transition:all .3s}
+.res-item{background:#fff;border:1px solid rgba(18,35,58,.14);border-radius:14px;padding:18px 22px;cursor:pointer;transition:all .3s;color:#33465C}
 .res-item:hover{border-color:rgba(212,168,75,.65);box-shadow:0 10px 26px rgba(18,35,58,.1)}
 .res-item .rt{display:flex;justify-content:space-between;gap:14px;align-items:baseline;flex-wrap:wrap}
 .res-item .rn{font-size:16px;font-weight:800;color:#12233A}
 .pno{display:inline-block;background:linear-gradient(135deg,#D4A84B,#B8912F);color:#23180A;border-radius:6px;padding:2px 10px;font-size:13px;font-weight:800;margin-right:8px}
-.res-item .sc{font-family:var(--mono);font-size:13px;color:var(--gold);font-weight:700;white-space:nowrap}
+/* 白卡片上的分数用深金：亮金 #D4A84B 白底对比度只有 2.2:1，眯眼都看不清 */
+.res-item .sc{font-family:var(--mono);font-size:13px;color:#8A6A2A;font-weight:700;white-space:nowrap}
 .res-item .rm{font-size:12.5px;color:#42566C;margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
 .meter{height:5px;background:rgba(18,35,58,.1);border-radius:3px;margin-top:10px;overflow:hidden}
 .meter i{display:block;height:100%;background:var(--gold-grad);border-radius:3px}
@@ -57,7 +59,8 @@ input[type=range]{width:100%;accent-color:var(--gold)}
 .acc-sec ul{list-style:none}
 .acc-sec li{padding:4px 0 4px 18px;position:relative}
 .acc-sec li::before{content:"▸";position:absolute;left:0;color:var(--gold)}
-.check{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;cursor:pointer;user-select:none}
+/* .check 落在白卡片上，必须显式给深色——之前没设，继承了 jade 深色区块的浅色字，白底白字直接隐形 */
+.check{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;cursor:pointer;user-select:none;color:#33465C}
 .check input{accent-color:var(--gold)}
 .flow{display:flex;gap:0;flex-wrap:wrap;margin-top:6px}
 .flow .st{flex:1;min-width:110px;text-align:center;position:relative;padding:14px 8px 0;font-size:12px;color:var(--ink-soft)}
@@ -161,7 +164,7 @@ input[type=range]{width:100%;accent-color:var(--gold)}
         </div>
       </div>
       <div class="rv">
-        <div class="res-head"><span class="x" id="resX">62</span><span style="font-size:13px;color:#8FA8BF">匹配到的可申报项目（按匹配度排序）</span><span id="applySrc" style="font-size:12px;color:#5E7A94;width:100%">数据来源：离线缓存模式</span></div>
+        <div class="res-head"><span class="x" id="resX">62</span><span style="font-size:13px;color:#8FA8BF">匹配到的可申报项目（按匹配度排序）</span><span id="applySrc" style="font-size:12px;color:#9FB4C8;width:100%">数据来源：离线缓存模式</span></div>
         <div class="res-list" id="resList"></div>
       </div>
     </div>
@@ -203,8 +206,8 @@ input[type=range]{width:100%;accent-color:var(--gold)}
         <h3 class="h-sub" style="margin-top:0">我的申报计划</h3>
         <div id="favList"></div>
       </div>
-      <div class="glass rv" style="padding:28px" id="matCard">
-        <h3 class="h-sub" style="margin-top:0;color:var(--gold-warm)">合并材料清单</h3>
+      <div class="glass gov-doc rv" style="padding:28px" id="matCard">
+        <h3 class="h-sub gov-title" style="margin-top:0;color:var(--gold-warm)">合并材料清单</h3>
         <div id="matList"></div>
         <div class="merger-actions no-print">
           <button class="btn btn-gold btn-sm" id="matPrint">打印清单</button>
@@ -242,10 +245,10 @@ input[type=range]{width:100%;accent-color:var(--gold)}
   </div>
 </section>
 
-<script src="assets/js/data.js?v=20260910"></script>
-<script src="assets/js/config.js?v=20260910"></script>
-<script src="assets/js/api.js?v=20260910"></script>
-<script src="assets/js/main.js?v=20260910"></script>
+<script src="assets/js/data.js?v=20260912"></script>
+<script src="assets/js/config.js?v=20260912"></script>
+<script src="assets/js/api.js?v=20260912"></script>
+<script src="assets/js/main.js?v=20260912"></script>
 <script>
 (function () {
   "use strict";
@@ -482,7 +485,19 @@ input[type=range]{width:100%;accent-color:var(--gold)}
     renderFavs(); renderCal(); render();
   });
   document.getElementById("matPrint").addEventListener("click", function () {
+    /* 打印前把 select 临时换成纯文本：下拉框打印出来只是个灰框，看不出选了什么。
+       window.print() 是同步阻塞的，打印对话框关掉后再把 select 装回去 */
+    var swaps = [];
+    document.querySelectorAll("#matList select").forEach(function (sel) {
+      var span = document.createElement("span");
+      span.textContent = sel.value;
+      span.style.cssText = "font-weight:700;color:#33465C";
+      sel.parentNode.insertBefore(span, sel);
+      sel.style.display = "none";
+      swaps.push([sel, span]);
+    });
     window.WS.printZone("#matCard", "申报材料合并清单");
+    swaps.forEach(function (pair) { pair[0].style.display = ""; pair[1].remove(); });
   });
   document.getElementById("matList").addEventListener("change", function (e) {
     var sel = e.target.closest("select[data-mname]");

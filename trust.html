@@ -6,7 +6,8 @@
 <title>背书与成果 · 东高垣数字治理工作站</title>
 <meta name="description" content="村两委回函、企业应用证明、成果清单、治理模板下载中心与数据溯源表。">
 <link rel="icon" href="assets/img/logo.png">
-<link rel="stylesheet" href="assets/css/main.css?v=20260910">
+<link rel="stylesheet" href="assets/css/main.css?v=20260912">
+<link rel="stylesheet" href="assets/css/gov-print.css?v=20260912">
 <style>
 /* ================= 回函仿纸卡 ================= */
 .letter{
@@ -190,8 +191,8 @@
   </div>
 </section>
 
-<script src="assets/js/data.js?v=20260910"></script>
-<script src="assets/js/main.js?v=20260910"></script>
+<script src="assets/js/data.js?v=20260912"></script>
+<script src="assets/js/main.js?v=20260912"></script>
 <script>
 /* ================= 治理端 10 张模板表（内容取自《光伏村建设手册》附录 B） ================= */
 (function () {
@@ -203,7 +204,7 @@
     }).join("");
     return '<div class="card tpl-card rv" data-i="' + i + '">' +
       '<div class="tpl-head"><span class="tn"><b>' + t.id + "</b>" + t.name + '</span><span class="ta">在线预览 ▾</span></div>' +
-      '<div class="tpl-body"><div class="tpl-scroll"><table class="tb"><thead><tr>' +
+      '<div class="tpl-body gov-doc"><div class="tpl-scroll"><table class="tb gov-tbl"><thead><tr>' +
       t.head.map(function (h) { return "<th>" + h + "</th>"; }).join("") + "</tr></thead><tbody>" + rows + "</tbody></table></div>" +
       '<div class="tpl-note"><b style="color:var(--gold-warm)">填表说明</b><br>' + t.note + "</div>" +
       '<div class="tpl-acts no-print"><button class="btn btn-gold btn-sm" data-print="' + i + '">打印此表</button></div>' +

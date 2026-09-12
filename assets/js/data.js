@@ -4080,7 +4080,7 @@ window.WS_DATA = {
  "meta": {
   "policyTotal": 121,
   "policyShown": 119,
-  "policyDropped": 1,
+  "policyDropped": 2,
   "projectTotal": 62,
   "yearRange": "2013—2026"
  }

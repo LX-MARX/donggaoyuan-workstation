@@ -1,6 +1,7 @@
 /* 沐光共富 · Kimi 智能问答悬浮组件（「东高垣数字治理工作站」站）
  * 左下角金色「问」按钮 → 聊天面板；由 main.js 动态加载，全站每页生效。
- * 依赖 auth.js 提供的 MG.chat(messages) → {reply}；缺失或异常时自动兜底。
+ * 提问先过本地 FAQ（assets/js/faq.js，与政策页口径问答同一份语料），
+ * 关键词计分够阈值就直接答，不够再走 Kimi 边缘函数；断网时本地匹配照样能用。
  */
 (function () {
   "use strict";
@@ -9,8 +10,8 @@
 
   var GOLD = "#D4A84B", GOLD2 = "#f0d78c";
   var FALLBACK = "暂时无法连接智能助手，请稍后再试，或拨打 13721171245 咨询项目组。";
-  var WELCOME = "您好！我是沐光共富智能助手。关于政策智库、项目申报、东高垣实证数据、驻村调研等问题，都可以直接问我。";
-  var CHIPS = ["这个项目是干什么的？", "农户装光伏要出钱吗？", "怎么识别光伏骗局？", "怎么预约驻村调研？"];
+  var WELCOME = "您好！我是沐光共富智能助手，已内置 22 条常见问题解答（租金、电价、维修、防骗等），其他关于政策智库、项目申报、东高垣实证数据、驻村调研的问题，也可以直接问我。";
+  var CHIPS = ["屋顶租金会不会少？", "屋顶漏水了找谁修？", "怎么识别光伏骗局？", "怎么预约驻村调研？"];
 
   /* ---------- 样式注入（mgc- 前缀，避免冲突） ---------- */
   var css =
@@ -121,6 +122,25 @@
     if (thinkingEl) { thinkingEl.remove(); thinkingEl = null; }
   }
 
+  /* ---------- 本地 FAQ 匹配 ----------
+     计分：语料关键词每命中一个 +2；问题原文与提问的连续双字重合每个 +1（封顶 4）。
+     阈值 3 是试出来的：单个关键词命中往往只是话题沾边，必须再有文字重合才放行，
+     宁可漏给 Kimi 也不要答非所问 */
+  function faqMatch(text) {
+    var list = window.MGFAQ || [];
+    var best = null, bestScore = 0;
+    list.forEach(function (x) {
+      var s = 0;
+      (x.k || []).forEach(function (w) { if (text.indexOf(w) >= 0) s += 2; });
+      if (!s) return; /* 关键词零命中直接跳过，双字重合太容易误伤 */
+      var q = x.q || "", bg = 0;
+      for (var i = 0; i < text.length - 1; i++) { if (q.indexOf(text.substr(i, 2)) >= 0) bg++; }
+      s += Math.min(bg, 4);
+      if (s > bestScore) { bestScore = s; best = x; }
+    });
+    return bestScore >= 3 ? best : null;
+  }
+
   function send(text) {
     text = String(text || "").trim();
     if (!text) return;
@@ -129,6 +149,17 @@
     hist.push({ role: "user", content: text });
     hist = hist.slice(-10);
     sendBtn.disabled = true;
+    /* 先本地 FAQ：命中就直接答（标出来源），不耗费云端调用 */
+    var hit = faqMatch(text);
+    if (hit) {
+      sendBtn.disabled = false;
+      var reply = "【常见问题解答】" + hit.a + "\n依据：" + hit.b;
+      addMsg("bot", reply);
+      hist.push({ role: "assistant", content: reply });
+      hist = hist.slice(-10);
+      input.focus();
+      return;
+    }
     showThinking();
     var finish = function (reply) {
       hideThinking();
