@@ -162,7 +162,7 @@
     if (!ready) return Promise.resolve({ reply: "当前为离线缓存模式，智能问答暂不可用。" });
     var contact = (window.MG_CONFIG && window.MG_CONFIG.CONTACT) || {};
     return fetch(cfg.url + "/functions/v1/" + (cfg.QA_FUNCTION || "qa-proxy"), {
-      method: "POST", headers: { "Content-Type": "application/json", apikey: cfg.anonKey },
+      method: "POST", headers: { "Content-Type": "application/json", apikey: cfg.anonKey, Authorization: "Bearer " + cfg.anonKey },
       body: JSON.stringify({ messages: messages })
     }).then(function (r) { return r.json(); }).catch(function () {
       return { reply: "网络异常，请稍后再试" + (contact.phone ? "；也可拨打 " + contact.phone + " 直接咨询。" : "。") };
