@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>预约调研 · 沐光共富</title>
+<title>预约调研 · 东高垣数字治理工作站</title>
 <meta name="description" content="预约驻村调研：在线问卷、电话、邮箱三种方式。服务范围全国，需提前 15—30 天预约。">
 <link rel="icon" href="assets/img/logo.png">
-<link rel="stylesheet" href="assets/css/main.css?v=20260912">
-<link rel="stylesheet" href="assets/css/gov-print.css?v=20260912">
+<link rel="stylesheet" href="assets/css/main.css">
+<link rel="stylesheet" href="assets/css/gov-print.css">
 <style>
 .book-hero{min-height:52vh;display:flex;align-items:center;background:var(--abyss);position:relative;overflow:hidden;padding:150px 0 60px;text-align:center}
 .book-hero .grid-bg{position:absolute;inset:0;background:linear-gradient(rgba(212,168,75,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(212,168,75,.05) 1px,transparent 1px);background-size:56px 56px;mask-image:radial-gradient(ellipse 80% 70% at 50% 40%,#000 30%,transparent 75%)}
@@ -83,11 +83,11 @@
     </div>
     <div class="glass survey rv">
       <form id="bookForm">
-        <div class="f-row"><label>1 · 您的姓名</label><input name="name" required placeholder="请输入姓名"></div>
-        <div class="f-row"><label>2 · 所在单位</label><input name="org" required placeholder="例如：某县发展改革局／某村两委／某企业"></div>
-        <div class="f-row"><label>3 · 联系电话</label><input name="tel" required type="tel" placeholder="用于确认调研行程"></div>
-        <div class="f-row"><label>4 · 意向村庄</label><input name="village" required placeholder="省／市／县／镇／村"></div>
-        <div class="f-row"><label>5 · 村庄基本情况</label><textarea name="intro" placeholder="户数、屋顶资源、是否已有光伏项目、主要需求……"></textarea></div>
+        <div class="f-row"><label>1 · 您的姓名</label><input name="name" required maxlength="50" placeholder="请输入姓名"></div>
+        <div class="f-row"><label>2 · 所在单位</label><input name="org" required maxlength="100" placeholder="例如：某县发展改革局／某村两委／某企业"></div>
+        <div class="f-row"><label>3 · 联系电话</label><input name="tel" required type="tel" maxlength="20" placeholder="用于确认调研行程"></div>
+        <div class="f-row"><label>4 · 意向村庄</label><input name="village" required maxlength="100" placeholder="省／市／县／镇／村"></div>
+        <div class="f-row"><label>5 · 村庄基本情况</label><textarea name="intro" maxlength="500" placeholder="户数、屋顶资源、是否已有光伏项目、主要需求……"></textarea></div>
         <button class="btn btn-gold" type="submit" style="width:100%;justify-content:center">提交预约</button>
       </form>
       <div class="f-result" id="bookResult">
@@ -113,15 +113,16 @@
   </div>
 </div>
 
-<script src="assets/js/config.js?v=20260912"></script>
-<script src="assets/js/api.js?v=20260912"></script>
-<script src="assets/js/main.js?v=20260912"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/main.js"></script>
 <script>
 (function () {
   /* 邮箱预填主题与正文模板 */
-  var subject = "驻村调研预约——沐光共富";
-  var body = "夏老师您好：\n\n我们单位希望预约驻村调研，基本信息如下：\n姓名：\n单位：\n联系电话：\n意向村庄（省/市/县/镇/村）：\n村庄基本情况（户数、屋顶资源、已有光伏项目情况、主要需求）：\n期望调研时间：\n\n（预约需提前 15—30 天，服务范围全国）";
-  document.getElementById("mailBtn").href = "mailto:1491568874@qq.com?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+  var CONTACT = (window.MG_CONFIG && window.MG_CONFIG.CONTACT) || {};
+  var subject = "驻村调研预约——东高垣数字治理工作站";
+  var body = "您好：\n\n我们单位希望预约驻村调研，基本信息如下：\n姓名：\n单位：\n联系电话：\n意向村庄（省/市/县/镇/村）：\n村庄基本情况（户数、屋顶资源、已有光伏项目情况、主要需求）：\n期望调研时间：\n\n（预约需提前 15—30 天，服务范围全国）";
+  document.getElementById("mailBtn").href = "mailto:" + (CONTACT.email || "") + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
 
   /* 问卷提交：云端数据库优先（成功用返回记录 id 生成 DGY-YYYYMMDD-id 编号），失败回退前端模拟提交 */
   var form = document.getElementById("bookForm");
@@ -131,9 +132,10 @@
   var tipEl = document.getElementById("bookTip");
   var receiptBtn = document.getElementById("receiptBtn");
   var lastReceipt = null;
+  var lastSubmitAt = 0; /* 30 秒提交节流：防止连点重复刷库 */
 
   function ymd(d) { return d.getFullYear() + String(d.getMonth() + 1).padStart(2, "0") + String(d.getDate()).padStart(2, "0"); }
-  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  var esc = window.mgEsc;
 
   form.addEventListener("submit", function (e) {
     e.preventDefault();
@@ -153,6 +155,18 @@
       result.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
+    /* 30 秒内只允许提交一次 */
+    var nowTs = Date.now();
+    if (nowTs - lastSubmitAt < 30000) {
+      statusEl.textContent = "提交过于频繁，未重复提交";
+      codeEl.textContent = "——";
+      tipEl.textContent = "相同预约 30 秒内只需提交一次，请稍后再试。";
+      receiptBtn.style.display = "none";
+      result.style.display = "block";
+      result.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    lastSubmitAt = nowTs;
     var submitBtn = form.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
     var d = new Date();
@@ -167,8 +181,8 @@
       statusEl.textContent = online ? "预约已登记（云端数据库实时提交）" : "预约已登记（离线登记，未同步云端）";
       codeEl.textContent = code;
       tipEl.textContent = online
-        ? "请妥善保存编号。团队将按编号在 3 个工作日内电话联系您；也可直接致电 13721171245 加速确认。"
-        : "请妥善保存编号。团队将按编号在 3 个工作日内电话联系您；也可直接致电 13721171245 加速确认。当前为离线缓存模式，登记未上传，建议同时通过邮件或电话确认。";
+        ? "请妥善保存编号。将按编号在 3 个工作日内电话联系您；也可直接致电 " + (CONTACT.phone || "") + " 加速确认。"
+        : "请妥善保存编号。将按编号在 3 个工作日内电话联系您；也可直接致电 " + (CONTACT.phone || "") + " 加速确认。当前为离线缓存模式，登记未上传，建议同时通过邮件或电话确认。";
       lastReceipt = { code: code, name: name, org: org, tel: tel, village: village, intro: intro, stamp: stamp, date: dateStr, online: online };
       /* 离线也要给凭证：云端断了不代表登记不作数，凭证上注明未同步即可 */
       receiptBtn.style.display = "inline-block";

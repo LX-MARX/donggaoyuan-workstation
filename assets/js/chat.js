@@ -1,7 +1,10 @@
-/* 沐光共富 · Kimi 智能问答悬浮组件（「东高垣数字治理工作站」站）
+/*
+ * 东高垣数字治理工作站软件 V1.0
+ * Copyright (c) 2026 夏立轩
+ * 智能问答悬浮组件
  * 左下角金色「问」按钮 → 聊天面板；由 main.js 动态加载，全站每页生效。
  * 提问先过本地 FAQ（assets/js/faq.js，与政策页口径问答同一份语料），
- * 关键词计分够阈值就直接答，不够再走 Kimi 边缘函数；断网时本地匹配照样能用。
+ * 关键词计分够阈值就直接答，不够再走云端问答边缘函数；断网时本地匹配照样能用。
  */
 (function () {
   "use strict";
@@ -9,8 +12,9 @@
   window.__mgcLoaded = true;
 
   var GOLD = "#D4A84B", GOLD2 = "#f0d78c";
-  var FALLBACK = "暂时无法连接智能助手，请稍后再试，或拨打 13721171245 咨询项目组。";
-  var WELCOME = "您好！我是沐光共富智能助手，已内置 22 条常见问题解答（租金、电价、维修、防骗等），其他关于政策智库、项目申报、东高垣实证数据、驻村调研的问题，也可以直接问我。";
+  var CONTACT = (window.MG_CONFIG && window.MG_CONFIG.CONTACT) || {};
+  var FALLBACK = "暂时无法连接智能助手，请稍后再试" + (CONTACT.phone ? "，或拨打 " + CONTACT.phone + " 咨询。" : "。");
+  var WELCOME = "您好！我是东高垣数字治理工作站智能问答助手，已内置 22 条常见问题解答（租金、电价、维修、防骗等），其他关于政策智库、项目申报、东高垣实证数据、驻村调研的问题，也可以直接问我。";
   var CHIPS = ["屋顶租金会不会少？", "屋顶漏水了找谁修？", "怎么识别光伏骗局？", "怎么预约驻村调研？"];
 
   /* ---------- 样式注入（mgc- 前缀，避免冲突） ---------- */
@@ -64,7 +68,7 @@
   var panel = document.createElement("div");
   panel.className = "mgc-panel";
   panel.innerHTML =
-    '<div class="mgc-head"><div><b>沐光共富智能助手</b><span>政策、模式、申报、手册，有问必答</span></div>' +
+    '<div class="mgc-head"><div><b>东高垣数字治理工作站智能问答助手</b><span>政策、模式、申报、手册，有问必答</span></div>' +
     '<button class="mgc-close" aria-label="关闭">×</button></div>' +
     '<div class="mgc-body"></div>' +
     '<div class="mgc-input"><input type="text" placeholder="请输入您的问题…" maxlength="500">' +
@@ -124,8 +128,7 @@
 
   /* ---------- 本地 FAQ 匹配 ----------
      计分：语料关键词每命中一个 +2；问题原文与提问的连续双字重合每个 +1（封顶 4）。
-     阈值 3 是试出来的：单个关键词命中往往只是话题沾边，必须再有文字重合才放行，
-     宁可漏给 Kimi 也不要答非所问 */
+     得分阈值 3：低于该值走兜底回复（转云端问答），避免关键词单点命中造成答非所问 */
   function faqMatch(text) {
     var list = window.MGFAQ || [];
     var best = null, bestScore = 0;

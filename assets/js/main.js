@@ -1,4 +1,8 @@
-/* 沐光共富 · 东高垣数字治理工作站 v3.2 —— 全局交互脚本 */
+/*
+ * 东高垣数字治理工作站软件 V1.0
+ * Copyright (c) 2026 夏立轩
+ * 全局交互脚本
+ */
 (function () {
   "use strict";
 
@@ -21,8 +25,8 @@
   }).join("");
   nav.innerHTML =
     '<div class="nav-inner">' +
-    '<a class="brand" href="index.html"><img src="assets/img/logo.png" alt="沐光共富标识">' +
-    '<span class="bt"><b>沐光共富</b><em>数字治理工作站</em></span></a>' +
+    '<a class="brand" href="index.html"><img src="assets/img/logo.png" alt="东高垣数字治理工作站标识">' +
+    '<span class="bt"><b>东高垣</b><em>数字治理工作站</em></span></a>' +
     '<button class="nav-toggle" aria-label="展开导航">菜单</button>' +
     '<nav class="nav-links">' + links + "</nav>" +
     '<div class="nav-right">' +
@@ -38,14 +42,14 @@
   footer.className = "footer noise";
   footer.innerHTML =
     '<div class="container"><div class="cols">' +
-    '<div><div class="brandline"><img src="assets/img/logo.png" alt="沐光共富标识"><b>沐光共富 Solar Common</b></div>' +
+    '<div><div class="brandline"><img src="assets/img/logo.png" alt="东高垣数字治理工作站标识"><b>东高垣数字治理工作站</b></div>' +
     "<p>屋顶上的共富路——整村光伏建设全周期操作方案与数智治理研究</p>" +
-    "<p>出品方：屋顶上的共富路项目组丨首个标杆案例：陕西省渭南市大荔县段家镇东高垣村</p></div>" +
+    "<p>首个标杆案例：陕西省渭南市大荔县段家镇东高垣村</p></div>" +
     '<div><h5>核心功能</h5><a href="policy.html">政策智库</a><a href="apply.html">申报助手</a><a href="dashboard.html">数据看板</a></div>' +
     '<div><h5>实证与信任</h5><a href="cases.html">东高垣实证</a><a href="trust.html">背书与成果</a><a href="booking.html">预约调研</a></div>' +
     '<div><h5>相关方案</h5><a href="https://lx-marx.github.io/gongfulu/">屋顶上的共富路——整村光伏建设方案</a></div>' +
     "</div>" +
-    '<div class="bottom"><span>© 2026 沐光共富 Solar Common丨屋顶上的共富路项目组</span><span>数据口径：大荔县全县（含东高垣村），截至 2025 年 7—8 月企业台账</span></div>' +
+    '<div class="bottom"><span>© 2026 夏立轩｜东高垣数字治理工作站</span><span>数据口径：大荔县全县（含东高垣村），截至 2025 年 7—8 月企业台账</span></div>' +
     "</div>";
   document.body.appendChild(footer);
 
@@ -67,17 +71,6 @@
     b.style.setProperty("--my", ((e.clientY - r.top) / r.height * 100) + "%");
   }, { passive: true });
 
-  /* ---------- 页面切换淡出 ---------- */
-  document.addEventListener("click", function (e) {
-    var a = e.target.closest ? e.target.closest("a") : null;
-    if (!a) return;
-    var href = a.getAttribute("href") || "";
-    if (/^(#|mailto:|tel:|javascript:)/.test(href) || a.target === "_blank" || /^(https?:)?\/\//.test(href)) return;
-    e.preventDefault();
-    document.body.classList.add("leaving");
-    setTimeout(function () { location.href = href; }, 280);
-  });
-
   /* ---------- 模块入场 ---------- */
   var io = new IntersectionObserver(function (es) {
     es.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add("on"); io.unobserve(en.target); } });
@@ -89,15 +82,22 @@
     root.querySelectorAll(".rv").forEach(function (el) { io.observe(el); });
   }
   document.querySelectorAll(".rv").forEach(function (el) { io.observe(el); });
-  new MutationObserver(function (muts) {
+  /* 只观察内容容器（导航/各 section/页脚），不挂整个 document.body */
+  var rvObserver = new MutationObserver(function (muts) {
     muts.forEach(function (m) { m.addedNodes.forEach(watchRv); });
-  }).observe(document.body, { childList: true, subtree: true });
+  });
+  document.querySelectorAll("header.nav, section, footer.footer").forEach(function (root) {
+    rvObserver.observe(root, { childList: true, subtree: true });
+  });
 
   /* ---------- 数字滚动 1.8s ease-out-expo ---------- */
   function easeOutExpo(t) { return t >= 1 ? 1 : 1 - Math.pow(2, -10 * t); }
   function countUp(el) {
-    var target = parseFloat(el.getAttribute("data-count"));
-    var dec = (el.getAttribute("data-count").split(".")[1] || "").length;
+    if (!el) return;
+    var raw = el.getAttribute("data-count");
+    var target = parseFloat(raw);
+    if (raw == null || !isFinite(target)) return; /* 空值/非数字直接跳过，不滚动 */
+    var dec = (raw.split(".")[1] || "").length;
     var suffix = el.getAttribute("data-suffix") || "";
     var t0 = null;
     function step(ts) {
@@ -214,13 +214,13 @@
   function mgBootAddons() {
     var base = "assets/js/", chain = [];
     if (!(window.MG && MG.auth)) {
-      if (!window.MG_CONFIG) chain.push(base + "config.js" + "?v=20260912");
-      if (!(window.MG && MG.book)) chain.push(base + "api.js" + "?v=20260912");
-      chain.push(base + "auth.js" + "?v=20260912");
+      if (!window.MG_CONFIG) chain.push(base + "config.js");
+      if (!(window.MG && MG.book)) chain.push(base + "api.js");
+      chain.push(base + "auth.js");
     }
     /* faq.js 必须在 chat.js 前面：问答助手先读本地语料，读不到才走云端 */
-    if (!window.MGFAQ) chain.push(base + "faq.js" + "?v=20260912");
-    chain.push(base + "chat.js" + "?v=20260912", base + "tour.js" + "?v=20260912");
+    if (!window.MGFAQ) chain.push(base + "faq.js");
+    chain.push(base + "chat.js", base + "tour.js");
     mgLoadChain(chain, mgRenderAccount);
     document.addEventListener("mg-auth-change", mgRenderAccount);
   }

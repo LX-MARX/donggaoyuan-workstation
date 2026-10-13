@@ -1,4 +1,7 @@
-/* 沐光共富 · 数据接入层（两站共用）
+/*
+ * 东高垣数字治理工作站软件 V1.0
+ * Copyright (c) 2026 夏立轩
+ * 数据接入层（依赖 config.js 先行加载）
  * 通过 Supabase PostgREST 直连 PostgreSQL：政策库、项目库、看板指标实时读取，预约登记实时写入。
  * 连接失败或未配置时返回 null，由调用方回退到本地缓存数据，保证演示永不中断。
  * 页面底部自动显示连接状态徽标（实时数据库 / 离线缓存）。
@@ -12,18 +15,12 @@ window.MG = (function () {
     if (!ready) return Promise.resolve(null);
     var opts = options || {};
     opts.headers = Object.assign({ apikey: cfg.anonKey, Authorization: "Bearer " + cfg.anonKey }, opts.headers || {});
-    /* 10 秒超时：网络挂起时及时回退本地缓存，避免页面停留在「正在连接」 */
-    var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
-    var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, 10000) : null;
-    if (ctrl) opts.signal = ctrl.signal;
     return fetch(cfg.url + "/rest/v1/" + path, opts).then(function (r) {
-      if (timer) clearTimeout(timer);
       if (!r.ok) throw new Error("HTTP " + r.status);
       state.online = true; state.mode = "实时数据库";
       badge();
       return opts.raw ? r : r.json();
     }).catch(function () {
-      if (timer) clearTimeout(timer);
       state.mode = "离线缓存";
       badge();
       return null;

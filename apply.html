@@ -6,8 +6,8 @@
 <title>申报助手 · 东高垣数字治理工作站</title>
 <meta name="description" content="62 项可申报项目的智能匹配与流程导航：四条件环形筛选、材料清单、申报日历、材料合并器。">
 <link rel="icon" href="assets/img/logo.png">
-<link rel="stylesheet" href="assets/css/main.css?v=20260912">
-<link rel="stylesheet" href="assets/css/gov-print.css?v=20260912">
+<link rel="stylesheet" href="assets/css/main.css">
+<link rel="stylesheet" href="assets/css/gov-print.css">
 <style>
 /* 页头样式已上收 assets/css/main.css（.page-hero/.grid-bg/.hero-cols/.page-sub） */
 
@@ -245,14 +245,15 @@ input[type=range]{width:100%;accent-color:var(--gold)}
   </div>
 </section>
 
-<script src="assets/js/data.js?v=20260912"></script>
-<script src="assets/js/config.js?v=20260912"></script>
-<script src="assets/js/api.js?v=20260912"></script>
-<script src="assets/js/main.js?v=20260912"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/main.js"></script>
 <script>
 (function () {
   "use strict";
   var D = window.WS_DATA, projects = D.projects;
+  var esc = window.mgEsc;
   var FUND_LABELS = ["不限", "100万以下", "100—500万元", "500—2000万元", "2000万元以上"];
   var state = { role: "", feats: [], type: "", fund: 0 };
 
@@ -314,16 +315,16 @@ input[type=range]{width:100%;accent-color:var(--gold)}
     resX.textContent = arr.length;
     resList.innerHTML = arr.map(function (x, i) {
       var p = x.p;
-      return '<div class="res-item" data-no="' + p.no + '">' +
-        '<div class="rt"><span class="rt-l"><span class="pno">No.' + String(p.no).padStart(2, "0") + '</span><span class="rn">' + p.name + '</span></span><span class="sc">匹配度 ' + x.s + '%</span></div>' +
-        '<div class="rm"><span>主管：' + p.dept + '</span><span>资金：' + (p.subsidy || "未标注") + '</span><span>窗口：' + (p.window || p.deadline) + '</span></div>' +
+      return '<div class="res-item" data-no="' + esc(p.no) + '">' +
+        '<div class="rt"><span class="rt-l"><span class="pno">No.' + String(p.no).padStart(2, "0") + '</span><span class="rn">' + esc(p.name) + '</span></span><span class="sc">匹配度 ' + x.s + '%</span></div>' +
+        '<div class="rm"><span>主管：' + esc(p.dept) + '</span><span>资金：' + esc(p.subsidy || "未标注") + '</span><span>窗口：' + esc(p.window || p.deadline) + '</span></div>' +
         '<div class="meter"><i style="width:' + x.s + '%"></i></div>' +
         '<div class="acc-detail">' +
-          '<div class="acc-sec"><h6>政策依据</h6><p>' + p.basis + '（' + p.level + '）</p></div>' +
+          '<div class="acc-sec"><h6>政策依据</h6><p>' + esc(p.basis) + '（' + esc(p.level) + '）</p></div>' +
           '<div class="acc-sec"><h6>申报条件自检（逐项勾选）</h6>' +
-            p.conditions.split(/[、；;]/).filter(Boolean).map(function (c) { return '<label class="check"><input type="checkbox">' + c + "</label>"; }).join("") + "</div>" +
+            p.conditions.split(/[、；;]/).filter(Boolean).map(function (c) { return '<label class="check"><input type="checkbox">' + esc(c) + "</label>"; }).join("") + "</div>" +
           '<div class="acc-sec"><h6>所需材料清单</h6><ul>' +
-            p.materials.split(/(?=[①②③④⑤⑥⑦⑧⑨])/).filter(Boolean).map(function (m) { return "<li>" + m + "</li>"; }).join("") + "</ul></div>" +
+            p.materials.split(/(?=[①②③④⑤⑥⑦⑧⑨])/).filter(Boolean).map(function (m) { return "<li>" + esc(m) + "</li>"; }).join("") + "</ul></div>" +
           '<div class="acc-sec"><h6>申报流程（建议周期）</h6><div class="flow">' +
             ["材料准备", "部门受理", "评审公示", "下达批复"].map(function (st) { return '<div class="st">' + st + "</div>"; }).join("") + "</div></div>" +
           '<button class="btn btn-ghost btn-sm fav-btn" style="color:var(--gold);border-color:rgba(212,168,75,.55)">' +
@@ -430,7 +431,7 @@ input[type=range]{width:100%;accent-color:var(--gold)}
       (events[dd] || []).forEach(function (p) {
         var diff = Math.floor((new Date(y, m, dd) - today) / 86400000);
         var red = diff >= 0 && diff <= 30;
-        html += '<span class="ev' + (red ? " red" : "") + '" title="' + p.name + "（" + (p.window || p.deadline) + '）">' + p.name + "</span>";
+        html += '<span class="ev' + (red ? " red" : "") + '" title="' + esc(p.name) + "（" + esc(p.window || p.deadline) + '）">' + esc(p.name) + "</span>";
       });
       html += "</div>";
     }
@@ -457,8 +458,8 @@ input[type=range]{width:100%;accent-color:var(--gold)}
     var favProjects = projects.filter(function (p) { return favs.indexOf(p.no) >= 0; });
     document.getElementById("favList").innerHTML = favProjects.length
       ? favProjects.map(function (p) {
-          return '<div class="fav-item"><span>' + p.name + '<br><small style="color:#8FA8BF">' + p.dept + "</small></span>" +
-            '<button data-rm="' + p.no + '" title="移除">×</button></div>';
+          return '<div class="fav-item"><span>' + esc(p.name) + '<br><small style="color:#8FA8BF">' + esc(p.dept) + "</small></span>" +
+            '<button data-rm="' + esc(p.no) + '" title="移除">×</button></div>';
         }).join("")
       : '<div class="fav-item"><span style="color:#8FA8BF">暂无收藏。请在匹配结果中加入申报计划。</span></div>';
     /* 材料去重合并 */
@@ -472,8 +473,8 @@ input[type=range]{width:100%;accent-color:var(--gold)}
     document.getElementById("matList").innerHTML = list.length
       ? list.map(function (m, i) {
           var cur = matStatus.get(m);
-          return '<div class="mat-row"><span class="mn">' + m + '</span>' +
-            '<select data-mi="' + i + '" data-mname="' + m + '">' +
+          return '<div class="mat-row"><span class="mn">' + esc(m) + '</span>' +
+            '<select data-mi="' + i + '" data-mname="' + esc(m) + '">' +
             MAT_STATUS.map(function (s) { return s === cur ? '<option selected>' + s + "</option>" : "<option>" + s + "</option>"; }).join("") +
             "</select></div>";
         }).join("")

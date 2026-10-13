@@ -6,7 +6,7 @@
 <title>数据看板 · 东高垣数字治理工作站</title>
 <meta name="description" content="大荔县（含东高垣村）光伏运营与治理数据可视化：核心指标、3D 数据地形、三级运维状态、发电量趋势、客诉分析。">
 <link rel="icon" href="assets/img/logo.png">
-<link rel="stylesheet" href="assets/css/main.css?v=20260912">
+<link rel="stylesheet" href="assets/css/main.css">
 <style>
 /* 页头样式已上收 assets/css/main.css（.page-hero/.grid-bg/.hero-cols/.page-sub） */
 .mini-kpis{display:flex;gap:14px}
@@ -175,76 +175,77 @@
   </div>
 </section>
 
-<script src="assets/js/data.js?v=20260912"></script>
-<script src="assets/js/config.js?v=20260912"></script>
-<script src="assets/js/api.js?v=20260912"></script>
-<script src="assets/js/main.js?v=20260912"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/main.js"></script>
 <script>
 /* ================= 看板指标渲染：云端数据库优先，失败回退本地缓存（WS_DATA.dashboardFallback） ================= */
-(function () {
-  "use strict";
-  var FALLBACK = window.WS_DATA.dashboardFallback;
+const Dashboard = {
+  FALLBACK: window.WS_DATA.dashboardFallback,
+  esc: window.mgEsc,
+  ioCount: null,
 
   /* 数字滚动复用 main.js 的 window.countUp（同一套 1.8s ease-out-expo），
      这里只补一个观察器，给云端数据到达后动态渲染的卡片手动触发 */
-  var ioCount = new IntersectionObserver(function (es) {
-    es.forEach(function (en) { if (en.isIntersecting) { window.countUp(en.target); ioCount.unobserve(en.target); } });
-  }, { threshold: 0.4 });
-  function animate(scope) { scope.querySelectorAll("[data-count]").forEach(function (el) { ioCount.observe(el); }); }
+  animate: function (scope) {
+    scope.querySelectorAll("[data-count]").forEach(function (el) { Dashboard.ioCount.observe(el); });
+  },
 
-  function byGrp(rows, grp) {
+  byGrp: function (rows, grp) {
     return rows.filter(function (r) { return r.grp === grp; }).sort(function (a, b) { return (a.sort || 0) - (b.sort || 0); });
-  }
+  },
 
   /* 装饰性资源（运维卡说明／客诉配色）：与指标数据无关，按位次循环使用 */
-  var OPS_STYLE = [
+  OPS_STYLE: [
     { cls: "ops-red", color: "#C89A92", desc: "纠纷 17 · 故障 3 · 电网 2<br>24 小时响应，逐户销号" },
     { cls: "ops-gold", color: "#CBB37E", desc: "按月跟踪，纳入容量联审<br>与电网改造计划" },
     { cls: "ops-cyan", color: "#9FBCD6", desc: "巡检周期处置<br>防止升级为停机" }
-  ];
-  var CMP_STYLE = [
+  ],
+  CMP_STYLE: [
     { bar: "linear-gradient(90deg,#8E332B,#C84B3F)", color: "#E88A7E" },
     { bar: "var(--gold-grad)", color: "var(--gold-warm)" },
     { bar: "linear-gradient(90deg,#2A4157,#5E87AC)", color: "#9FBCD6" }
-  ];
+  ],
 
-  function renderAll(rows) {
+  renderAll: function (rows) {
+    var esc = Dashboard.esc;
     /* 全县 KPI（页头迷你卡）：value_text 优先于 value_num 显示 */
-    var county = byGrp(rows, "county_kpi");
+    var county = Dashboard.byGrp(rows, "county_kpi");
     window.__dashCounty = county; /* 供 3D 地形悬停卡读取全县真实指标 */
     document.getElementById("countyKpis").innerHTML = county.map(function (r) {
       var v = r.value_text ? r.value_text : r.value_num + (r.unit === "%" ? "%" : "");
       var suffix = r.unit && r.unit !== "%" ? "（" + r.unit + "）" : "";
-      return '<div class="glass mini-kpi"><div class="v">' + v + '</div><div class="l">' + r.label + suffix + "</div></div>";
+      return '<div class="glass mini-kpi"><div class="v">' + esc(v) + '</div><div class="l">' + esc(r.label) + esc(suffix) + "</div></div>";
     }).join("");
 
-    var village = byGrp(rows, "village_kpi");
+    var village = Dashboard.byGrp(rows, "village_kpi");
     var vk = document.getElementById("villageKpis");
     vk.innerHTML = village.map(function (r, i) {
       var num = r.value_text ? parseFloat(r.value_text) : r.value_num;
-      return '<div class="glass kpi-card rv on"><div class="kl">' + r.label + '</div>' +
-        '<div class="kv"><span data-count="' + num + '">0</span><i>' + (r.unit || "") + "</i></div></div>";
+      return '<div class="glass kpi-card rv on"><div class="kl">' + esc(r.label) + '</div>' +
+        '<div class="kv"><span data-count="' + esc(num) + '">0</span><i>' + esc(r.unit || "") + "</i></div></div>";
     }).join("");
-    animate(vk);
+    Dashboard.animate(vk);
 
     /* 三级运维：占比条与占比文案（离线缓存含既有口径 pct；云端数据按全县总数实算） */
     var countyTotal = county.length && county[0].value_num ? county[0].value_num : 0;
-    var ops = byGrp(rows, "ops_level");
+    var ops = Dashboard.byGrp(rows, "ops_level");
     var oc = document.getElementById("opsCards");
     oc.innerHTML = ops.map(function (r, i) {
-      var st = OPS_STYLE[i % OPS_STYLE.length];
+      var st = Dashboard.OPS_STYLE[i % Dashboard.OPS_STYLE.length];
       var pct = r.pct != null ? String(r.pct) : (countyTotal ? (r.value_num / countyTotal * 100).toFixed(1) : "");
       return '<div class="card ops-card ' + st.cls + ' rv on">' +
-        '<div class="on2">' + r.label + '</div>' +
-        '<div class="ov"><span data-count="' + r.value_num + '">0</span> ' + (r.unit || "") + '</div>' +
+        '<div class="on2">' + esc(r.label) + '</div>' +
+        '<div class="ov"><span data-count="' + esc(r.value_num) + '">0</span> ' + esc(r.unit || "") + '</div>' +
         '<div class="od" style="color:' + st.color + '">' + st.desc + '</div>' +
         '<div class="bar"><i style="width:' + (pct || 0) + '%"></i></div>' +
-        (pct ? '<div style="font-size:11px;color:#8FA8BF;margin-top:8px">约占全县电站 ' + pct + "%</div>" : "") +
+        (pct ? '<div style="font-size:11px;color:#8FA8BF;margin-top:8px">约占全县电站 ' + esc(pct) + "%</div>" : "") +
         "</div>";
     }).join("");
-    animate(oc);
+    Dashboard.animate(oc);
 
-    var trend = byGrp(rows, "trend");
+    var trend = Dashboard.byGrp(rows, "trend");
     var svg = document.getElementById("trendSvg");
     if (trend.length) {
       var maxV = Math.max.apply(null, trend.map(function (r) { return r.value_num; }));
@@ -266,32 +267,38 @@
         pts.map(function (p, i) {
           var c = i === last ? "#C84B3F" : "#D4A84B";
           return '<circle cx="' + p.x + '" cy="' + p.y + '" r="6" fill="' + c + '"/>' +
-            '<text x="' + p.x + '" y="' + (p.y - 26) + '" text-anchor="middle" font-size="22" font-weight="700" fill="' + (i === last ? "#C84B3F" : "#12233A") + '" font-family="monospace">' + p.r.value_num + "</text>" +
-            '<text x="' + p.x + '" y="316" text-anchor="middle" font-size="14" fill="#4A6076">' + p.r.label + "</text>";
+            '<text x="' + p.x + '" y="' + (p.y - 26) + '" text-anchor="middle" font-size="22" font-weight="700" fill="' + (i === last ? "#C84B3F" : "#12233A") + '" font-family="monospace">' + esc(p.r.value_num) + "</text>" +
+            '<text x="' + p.x + '" y="316" text-anchor="middle" font-size="14" fill="#4A6076">' + esc(p.r.label) + "</text>";
         }).join("") +
         '<text x="' + pts[maxI].x + '" y="' + (pts[maxI].y + 30) + '" text-anchor="middle" font-size="12" fill="#8a6a2a">峰值</text>' +
         '<text x="640" y="180" text-anchor="middle" font-size="12" fill="#C84B3F" transform="rotate(24 640 180)">“531”新政后新增显著放缓</text>';
     }
 
-    var cmps = byGrp(rows, "complaint");
+    var cmps = Dashboard.byGrp(rows, "complaint");
     if (cmps.length) {
       var maxC = Math.max.apply(null, cmps.map(function (r) { return r.value_num; }));
       document.getElementById("complaintBars").innerHTML = cmps.map(function (r, i) {
-        var st = CMP_STYLE[i % CMP_STYLE.length];
+        var st = Dashboard.CMP_STYLE[i % Dashboard.CMP_STYLE.length];
         var w = maxC ? Math.max(r.value_num / maxC * 100, 4) : 0;
-        return '<div class="complaint-row"><span class="cn">' + r.label + '</span>' +
+        return '<div class="complaint-row"><span class="cn">' + esc(r.label) + '</span>' +
           '<span class="cb"><i style="width:' + w + "%;background:" + st.bar + '"></i></span>' +
-          '<span class="cv" style="color:' + st.color + '">' + r.value_num + " " + (r.unit || "") + "</span></div>";
+          '<span class="cv" style="color:' + st.color + '">' + esc(r.value_num) + " " + esc(r.unit || "") + "</span></div>";
       }).join("");
     }
-  }
+  },
 
-  /* 首屏先出本地缓存口径（不白屏），随后尝试云端实时下发 */
-  renderAll(FALLBACK);
-  if (window.MG) {
-    MG.metrics().then(function (rows) { if (rows && rows.length) renderAll(rows); });
+  init: function () {
+    Dashboard.ioCount = new IntersectionObserver(function (es) {
+      es.forEach(function (en) { if (en.isIntersecting) { window.countUp(en.target); Dashboard.ioCount.unobserve(en.target); } });
+    }, { threshold: 0.4 });
+    /* 首屏先出本地缓存口径（不白屏），随后尝试云端实时下发 */
+    Dashboard.renderAll(Dashboard.FALLBACK);
+    if (window.MG) {
+      MG.metrics().then(function (rows) { if (rows && rows.length) Dashboard.renderAll(rows); });
+    }
   }
-})();
+};
+Dashboard.init();
 </script>
 <script>
 /* ================= 动效 #4：3D 数据地形图（Canvas 2D 等距投影，可拖拽） ================= */
@@ -350,8 +357,9 @@
       card.style.left = Math.min(best[2][0] + 18, W - 200) + "px";
       card.style.top = Math.max(best[2][1] - 96, 8) + "px";
       /* 悬停卡只呈现真实口径：全县 KPI 摘要来自看板指标（云端或本地缓存），地形本身不产数据 */
+      var esc2 = window.mgEsc;
       var sum = (window.__dashCounty || []).map(function (r) {
-        return r.label + " " + (r.value_text ? r.value_text : r.value_num + (r.unit === "%" ? "%" : r.unit ? " " + r.unit : ""));
+        return esc2(r.label) + " " + esc2(r.value_text ? r.value_text : r.value_num + (r.unit === "%" ? "%" : r.unit ? " " + r.unit : ""));
       }).join("<br>");
       card.innerHTML = '<div class="tv">分区 ' + String.fromCharCode(65 + Math.floor(best[0] / 4)) + "-" + (Math.floor(best[1] / 4) + 1) + '</div>' +
         '<div class="tl2">数据口径：大荔县全县企业台账，截至 2025 年 7—8 月<br>' + sum + '<br>艺术化地形仅作装饰，真实指标见上方数据卡</div>';

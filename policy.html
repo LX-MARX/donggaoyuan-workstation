@@ -6,8 +6,8 @@
 <title>政策智库 · 东高垣数字治理工作站</title>
 <meta name="description" content="119 条五级政策文本的结构化数据库与智能分析：检索控制台、3D 政策层级塔、演进时间轴、口径问答生成。">
 <link rel="icon" href="assets/img/logo.png">
-<link rel="stylesheet" href="assets/css/main.css?v=20260912">
-<link rel="stylesheet" href="assets/css/gov-print.css?v=20260912">
+<link rel="stylesheet" href="assets/css/main.css">
+<link rel="stylesheet" href="assets/css/gov-print.css">
 <style>
 /* 页头样式已上收 assets/css/main.css（.page-hero/.grid-bg/.hero-cols/.page-sub） */
 
@@ -86,7 +86,7 @@
 .tl-quote{background:rgba(10,22,40,.75);border-radius:10px;padding:16px 18px;font-size:13.5px;color:#B9C9D8;margin:12px 0}
 .tl-arrow{color:var(--gold);font-size:18px;margin:4px 0 4px 12px}
 .tl-note{border-left:4px solid var(--gold);background:rgba(212,168,75,.08);padding:14px 18px;font-size:13.5px;color:#E8DFC8;border-radius:0 10px 10px 0}
-.tl-note .ai{display:inline-block;font-size:10.5px;letter-spacing:.12em;color:var(--gold-warm);border:1px solid rgba(240,215,140,.5);border-radius:99px;padding:1px 10px;margin-bottom:8px}
+.tl-note .note{display:inline-block;font-size:10.5px;letter-spacing:.12em;color:var(--gold-warm);border:1px solid rgba(240,215,140,.5);border-radius:99px;padding:1px 10px;margin-bottom:8px}
 
 /* ================= 12 项重点政策卡 ================= */
 .pol-card{cursor:pointer}
@@ -188,7 +188,7 @@
     <div class="section-head rv">
       <div class="kicker">政策演进</div>
       <h2 class="h-sec">从整县试点到电价市场化</h2>
-      <p class="lead">五个关键节点，看懂屋顶光伏政策五年演进。点击节点展开政策摘要与智能分析批注。</p>
+      <p class="lead">五个关键节点，看懂屋顶光伏政策五年演进。点击节点展开政策摘要与要点批注。</p>
     </div>
     <div class="tl rv" id="tlNodes"></div>
     <div class="tl-detail" id="tlDetail"></div>
@@ -240,15 +240,16 @@
   </div>
 </section>
 
-<script src="assets/js/data.js?v=20260912"></script>
-<script src="assets/js/faq.js?v=20260912"></script>
-<script src="assets/js/config.js?v=20260912"></script>
-<script src="assets/js/api.js?v=20260912"></script>
-<script src="assets/js/main.js?v=20260912"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/faq.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/main.js"></script>
 <script>
 (function () {
   "use strict";
   var D = window.WS_DATA, policies = D.policies;
+  var esc = window.mgEsc;
 
   /* ================= 检索控制台（云端政策库优先，失败回退本地缓存；多维标签组合筛选） ================= */
   /* 4 组标签：同组内单选、组间叠加，再点已选标签可取消（回到“全部”） */
@@ -359,10 +360,10 @@
       (active.length ? " 丨 " + active.join(" 丨 ") : "");
     resEl.innerHTML = list.slice(0, 120).map(function (p) {
       var y = yearOf(p);
-      var chips = (p.topics || []).map(function (t) { return '<button class="ptag" type="button" data-topic="' + t + '">' + t + "</button>"; }).join("");
-      return '<div class="pitem"><div class="pt">' + p.title + '</div><div class="pm"><span class="lv">' + p.level + " · " + p.level5 + "</span>" +
-        (y ? '<span class="lv">' + y + " 年</span>" : "") +
-        "<span>" + p.org + "</span><span>" + (p.docNo || "无文号") + "</span><span>" + p.date + '</span></div><div class="ps">' + p.applyPoint + "</div>" +
+      var chips = (p.topics || []).map(function (t) { return '<button class="ptag" type="button" data-topic="' + esc(t) + '">' + esc(t) + "</button>"; }).join("");
+      return '<div class="pitem"><div class="pt">' + esc(p.title) + '</div><div class="pm"><span class="lv">' + esc(p.level) + " · " + esc(p.level5) + "</span>" +
+        (y ? '<span class="lv">' + esc(y) + " 年</span>" : "") +
+        "<span>" + esc(p.org) + "</span><span>" + esc(p.docNo || "无文号") + "</span><span>" + esc(p.date) + '</span></div><div class="ps">' + esc(p.applyPoint) + "</div>" +
         (chips ? '<div class="ptags">' + chips + "</div>" : "") + "</div>";
     }).join("") || '<div class="pitem"><div class="pt">未检索到匹配政策，请调整关键词或筛选标签。</div></div>';
     if (list.length > 120) resEl.innerHTML += '<div class="pitem"><div class="pm">仅显示前 120 条，请增加关键词缩小范围。</div></div>';
@@ -420,7 +421,7 @@
     panel.innerHTML = "<h4>" + k + "政策</h4>" +
       '<div class="cnt">收录 <b>' + list.length + "</b> 条 · 占全库 " + (list.length / D.meta.policyShown * 100).toFixed(1) + "%</div>" +
       list.map(function (p) {
-        return '<div class="pi"><div class="t">' + p.title + '</div><div class="m">' + p.org + " · " + (p.docNo || "无文号") + " · " + p.date + "</div></div>";
+        return '<div class="pi"><div class="t">' + esc(p.title) + '</div><div class="m">' + esc(p.org) + " · " + esc(p.docNo || "无文号") + " · " + esc(p.date) + "</div></div>";
       }).join("");
     panel.scrollTop = 0;
   }
@@ -436,7 +437,7 @@
     var n = TL[i];
     tlN.querySelectorAll(".tl-node").forEach(function (x, j) { x.classList.toggle("on", j === i); });
     tlD.classList.add("on");
-    tlD.innerHTML = '<div class="tl-card"><h4>' + n.h + '</h4><div class="tl-quote">' + n.q + '</div><div class="tl-arrow">↓ 智能分析</div><div class="tl-note"><span class="ai">AI 分析批注 · 仅供参考</span><br>' + n.n + "</div></div>";
+    tlD.innerHTML = '<div class="tl-card"><h4>' + n.h + '</h4><div class="tl-quote">' + n.q + '</div><div class="tl-arrow">↓ 智能分析</div><div class="tl-note"><span class="note">基层落实要点批注</span><br>' + n.n + "</div></div>";
   }
   tlN.addEventListener("click", function (e) { var n = e.target.closest(".tl-node"); if (n) showTL(+n.getAttribute("data-i")); });
   showTL(3);

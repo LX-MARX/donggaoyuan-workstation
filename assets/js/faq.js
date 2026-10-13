@@ -1,6 +1,8 @@
-/* 沐光共富 · 口径问答语料（全站唯一一份）
- * 原本内联在 policy.html 问答生成器里，后来问答助手也要用，再复制一份迟早打架，
- * 于是抽到这里：policy.html 的口径问答生成器与 chat.js 的本地 FAQ 匹配都读 window.MGFAQ。
+/*
+ * 东高垣数字治理工作站软件 V1.0
+ * Copyright (c) 2026 夏立轩
+ * 口径问答语料
+ * 问答语料统一维护于本文件；policy.html 的口径问答生成器与 chat.js 的本地 FAQ 匹配都读 window.MGFAQ。
  * 字段：q 问题 / a 答复 / b 依据文件 / t 适用对象 / k 匹配关键词（命中数最多者作为参照口径）。
  */
 window.MGFAQ = [

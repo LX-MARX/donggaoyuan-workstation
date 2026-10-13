@@ -1,5 +1,8 @@
-/* 沐光共富 · 账号与扩展数据层（两站共用，依赖 api.js 先行加载）
- * 提供：邮箱注册/登录/退出、角色资料、在线表格存档、村庄评估提交、管理员数据维护、Kimi 智能问答代理。管理员采用申请审批制。
+/*
+ * 东高垣数字治理工作站软件 V1.0
+ * Copyright (c) 2026 夏立轩
+ * 账号与扩展数据层（依赖 api.js 先行加载）
+ * 提供：邮箱注册/登录/退出、角色资料、在线表格存档、村庄评估提交、管理员数据维护、智能问答代理。管理员采用申请审批制。
  * 会话保存在 localStorage「mg_session」；所有写操作携带用户令牌，权限由数据库行级安全策略裁决。
  */
 (function () {
@@ -154,14 +157,15 @@
     }, true);
   }
 
-  /* ---------- Kimi 智能问答（边缘函数代理，密钥不落地浏览器） ---------- */
+  /* ---------- 智能问答（边缘函数代理，密钥不落地浏览器） ---------- */
   function chat(messages) {
     if (!ready) return Promise.resolve({ reply: "当前为离线缓存模式，智能问答暂不可用。" });
-    return fetch(cfg.url + "/functions/v1/kimi-chat", {
+    var contact = (window.MG_CONFIG && window.MG_CONFIG.CONTACT) || {};
+    return fetch(cfg.url + "/functions/v1/" + (cfg.QA_FUNCTION || "qa-proxy"), {
       method: "POST", headers: { "Content-Type": "application/json", apikey: cfg.anonKey },
       body: JSON.stringify({ messages: messages })
     }).then(function (r) { return r.json(); }).catch(function () {
-      return { reply: "网络异常，请稍后再试；也可拨打 13721171245 直接咨询项目组。" };
+      return { reply: "网络异常，请稍后再试" + (contact.phone ? "；也可拨打 " + contact.phone + " 直接咨询。" : "。") };
     });
   }
 

@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>数据管理台 · 沐光共富</title>
+<title>数据管理台 · 东高垣数字治理工作站</title>
 <meta name="description" content="东高垣数字治理工作站数据管理台：预约登记、村庄评估、表格存档、政策与项目库维护、用户列表，仅项目管理员可见。">
 <link rel="icon" href="assets/img/logo.png">
-<link rel="stylesheet" href="assets/css/main.css?v=20260912">
+<link rel="stylesheet" href="assets/css/main.css">
 <style>
 .ad-hero{min-height:44vh;display:flex;align-items:center;background:var(--abyss);position:relative;overflow:hidden;padding:150px 0 60px;text-align:center}
 .ad-hero .grid-bg{position:absolute;inset:0;background:linear-gradient(rgba(212,168,75,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(212,168,75,.05) 1px,transparent 1px);background-size:56px 56px;mask-image:radial-gradient(ellipse 80% 70% at 50% 40%,#000 30%,transparent 75%)}
@@ -172,10 +172,10 @@ table.adm tr.clickable:hover td{background:rgba(212,168,75,.07)}
   </div>
 </div>
 
-<script src="assets/js/config.js?v=20260912"></script>
-<script src="assets/js/api.js?v=20260912"></script>
-<script src="assets/js/auth.js?v=20260912"></script>
-<script src="assets/js/main.js?v=20260912"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/auth.js"></script>
+<script src="assets/js/main.js"></script>
 <script>
 (function () {
   "use strict";
@@ -246,7 +246,7 @@ table.adm tr.clickable:hover td{background:rgba(212,168,75,.07)}
   function guard() {
     if (!MG.auth.session()) { deny("请先登录", "管理台仅对已登录的项目管理员开放，请先登录或注册。", true); return; }
     MG.auth.isAdmin().then(function (ok) {
-      if (!ok) { deny("无管理台权限", "当前账号为普通用户，无管理台权限。如需管理员身份，请联系项目组开通。", false); return; }
+      if (!ok) { deny("无管理台权限", "当前账号为普通用户，无管理台权限。如需管理员身份，请联系项目组开通。", false); location.href = "account.html"; return; }
       $("guardLoading").style.display = "none";
       $("adminApp").style.display = "block";
       loadStats();
