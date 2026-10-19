@@ -53,23 +53,7 @@
     "</div>";
   document.body.appendChild(footer);
 
-  /* —— 鼠标聚光灯 —— */
-  var sp = document.createElement("div");
-  sp.id = "spotlight";
-  document.body.appendChild(sp);
-  document.addEventListener("mousemove", function (e) {
-    sp.style.setProperty("--sx", e.clientX + "px");
-    sp.style.setProperty("--sy", e.clientY + "px");
-  }, { passive: true });
-
-  /* ---------- 液态金属按钮高光 ---------- */
-  document.addEventListener("mousemove", function (e) {
-    var b = e.target.closest ? e.target.closest(".btn") : null;
-    if (!b) return;
-    var r = b.getBoundingClientRect();
-    b.style.setProperty("--mx", ((e.clientX - r.left) / r.width * 100) + "%");
-    b.style.setProperty("--my", ((e.clientY - r.top) / r.height * 100) + "%");
-  }, { passive: true });
+  /* —— 鼠标聚光灯、液态高光、3D 磁吸：已按 V2 定稿移除 —— */
 
   /* ---------- 模块入场 ---------- */
   var io = new IntersectionObserver(function (es) {
@@ -114,18 +98,6 @@
     es.forEach(function (en) { if (en.isIntersecting) { countUp(en.target); io2.unobserve(en.target); } });
   }, { threshold: 0.4 });
   document.querySelectorAll("[data-count]").forEach(function (el) { io2.observe(el); });
-
-  /* ---------- 3D Tilt 磁吸卡 ---------- */
-  document.querySelectorAll("[data-tilt]").forEach(function (el) {
-    el.style.transformStyle = "preserve-3d";
-    el.addEventListener("mousemove", function (e) {
-      var r = el.getBoundingClientRect();
-      var rx = ((e.clientY - r.top) / r.height - 0.5) * -16;
-      var ry = ((e.clientX - r.left) / r.width - 0.5) * 16;
-      el.style.transform = "perspective(900px) rotateX(" + rx + "deg) rotateY(" + ry + "deg) translateY(-6px)";
-    });
-    el.addEventListener("mouseleave", function () { el.style.transform = ""; });
-  });
 
   /* ---------- 账号区样式（mga- 前缀） ---------- */
   function mgNavStyle() {
