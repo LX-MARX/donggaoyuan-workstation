@@ -11,21 +11,13 @@
 <style>
 /* 页头样式已上收 assets/css/main.css（.page-hero/.grid-bg/.hero-cols/.page-sub） */
 
-/* ================= 3D 环形匹配器 ================= */
+/* ================= 匹配器布局 ================= */
 .match-grid{display:grid;grid-template-columns:2fr 3fr;gap:30px;align-items:start}
 @media(max-width:960px){.match-grid{grid-template-columns:1fr}}
-.ring-scene{perspective:1100px;height:300px;display:flex;align-items:center;justify-content:center;position:relative;margin:10px 0 24px}
-.ring{width:250px;height:250px;position:relative;transform-style:preserve-3d;transform:rotateX(66deg)}
-.ring-disc{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(212,168,75,.5);box-shadow:0 0 40px rgba(212,168,75,.15),inset 0 0 60px rgba(212,168,75,.08);animation:ringSpin 22s linear infinite;transform-style:preserve-3d}
-@keyframes ringSpin{from{transform:rotateZ(0)}to{transform:rotateZ(360deg)}}
-.ring-node{position:absolute;width:76px;height:76px;margin:-38px 0 0 -38px;border-radius:50%;background:rgba(18,35,58,.92);border:1.5px solid rgba(240,215,140,.65);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:0 0 24px rgba(212,168,75,.3)}
-.ring-node .rn{font-size:12px;font-weight:700;color:var(--gold-warm);letter-spacing:.06em}
-.ring-node .rv2{font-size:10px;color:#8FA8BF;max-width:66px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.orb{position:absolute;left:50%;top:50%;border-radius:50%;transform:translate(-50%,-58%);
-  background:radial-gradient(circle at 35% 30%,#FFF3D0 0%,var(--gold-warm) 28%,var(--gold) 62%,rgba(212,168,75,.15) 100%);
-  box-shadow:0 0 60px rgba(240,215,140,.65),0 0 120px rgba(212,168,75,.3);transition:width .6s cubic-bezier(.16,1,.3,1),height .6s cubic-bezier(.16,1,.3,1);
-  display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700;color:#23180A;z-index:3}
-.orb-lbl{position:absolute;left:50%;top:50%;transform:translate(-50%,34px);font-size:11px;letter-spacing:.2em;color:var(--gold-warm);z-index:3;white-space:nowrap}
+/* ================= 当前条件条 ================= */
+.cond-bar{display:flex;flex-wrap:wrap;gap:10px 22px;margin-bottom:24px;padding:14px 18px;border:1px solid var(--ivory-15);font-size:13.5px;font-family:var(--fz)}
+.cond-bar .cb-i{color:var(--ivory-60);letter-spacing:.06em}
+.cond-bar .cb-i b{color:var(--amber);font-weight:400;margin-left:4px}
 .ctrl{margin-bottom:20px}
 .ctrl .cl{font-size:12px;letter-spacing:.18em;color:var(--gold-warm);font-weight:700;margin-bottom:10px}
 .ctrl select{width:100%;background:rgba(10,22,40,.7);border:1px solid rgba(212,168,75,.35);border-radius:10px;color:var(--moon);padding:12px 14px;font-size:14px;font-family:inherit;outline:none}
@@ -115,14 +107,14 @@ input[type=range]{width:100%;accent-color:var(--gold)}
       <p class="src">项目库口径：62 项可申报项目，源自五级政策库梳理</p>
     </div>
     <div class="glass rv" style="padding:30px;text-align:center">
-      <div style="font-size:12px;letter-spacing:.24em;color:var(--gold-warm);margin-bottom:16px">四条件环形匹配</div>
+      <div style="font-size:12.5px;letter-spacing:.24em;color:var(--amber);margin-bottom:16px;font-family:var(--fz)">四条件匹配</div>
       <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap">
-        <span style="border:1px solid rgba(240,215,140,.55);border-radius:99px;padding:7px 16px;font-size:12px;color:var(--gold-warm)">申报主体</span>
-        <span style="border:1px solid rgba(212,168,75,.4);border-radius:99px;padding:7px 16px;font-size:12px;color:#C6D3E0">村庄特征</span>
-        <span style="border:1px solid rgba(212,168,75,.4);border-radius:99px;padding:7px 16px;font-size:12px;color:#C6D3E0">需求领域</span>
-        <span style="border:1px solid rgba(212,168,75,.4);border-radius:99px;padding:7px 16px;font-size:12px;color:#C6D3E0">资金规模</span>
+        <span style="border:1px solid var(--ivory-35);padding:7px 16px;font-size:12.5px;color:var(--ivory)">申报主体</span>
+        <span style="border:1px solid var(--ivory-15);padding:7px 16px;font-size:12.5px;color:var(--ivory-60)">村庄特征</span>
+        <span style="border:1px solid var(--ivory-15);padding:7px 16px;font-size:12.5px;color:var(--ivory-60)">需求领域</span>
+        <span style="border:1px solid var(--ivory-15);padding:7px 16px;font-size:12.5px;color:var(--ivory-60)">资金规模</span>
       </div>
-      <a href="#matcher" style="display:inline-block;margin-top:18px;font-size:12px;color:var(--gold-warm);letter-spacing:.1em">进入智能匹配器 ↓</a>
+      <a href="#matcher" style="display:inline-block;margin-top:18px;font-size:12.5px;color:var(--amber);letter-spacing:.1em;border-bottom:1px solid rgba(217,164,65,.5);padding-bottom:2px">进入匹配</a>
     </div>
   </div>
 </section>
@@ -136,10 +128,11 @@ input[type=range]{width:100%;accent-color:var(--gold)}
     </div>
     <div class="match-grid">
       <div class="glass rv" style="padding:30px">
-        <div class="ring-scene">
-          <div class="ring"><div class="ring-disc" id="ringDisc"></div></div>
-          <div class="orb" id="orb" style="width:84px;height:84px;font-size:22px">62</div>
-          <div class="orb-lbl">匹配项目（项）</div>
+        <div class="cond-bar" id="condBar">
+          <span class="cb-i">主体：<b id="rn0">不限</b></span>
+          <span class="cb-i">特征：<b id="rn1">不限</b></span>
+          <span class="cb-i">领域：<b id="rn2">不限</b></span>
+          <span class="cb-i">资金：<b id="rn3">不限</b></span>
         </div>
         <div class="ctrl"><div class="cl">申报主体</div>
           <select id="cRole">
@@ -218,33 +211,6 @@ input[type=range]{width:100%;accent-color:var(--gold)}
   </div>
 </section>
 
-<!-- ================= 5. 到账周期提示 ================= -->
-<section class="section paper">
-  <div class="container">
-    <div class="section-head rv">
-      <div class="kicker">到账周期与竞争强度</div>
-      <h2 class="h-sec">申报之前，先校准预期</h2>
-    </div>
-    <div class="grid-3">
-      <div class="card cycle-card rv">
-        <div class="cy">乡村振兴衔接资金</div>
-        <p class="cd">按年度下达分配结果（参见陕农公告〔2025〕99 号公告口径）。从申报到资金到账的平均周期，本地统计样本不足。</p>
-        <span class="tag2">到账周期：数据收集中，持续更新</span>
-      </div>
-      <div class="card cycle-card rv">
-        <div class="cy">清洁能源与光伏专项</div>
-        <p class="cd">“531”新政后新增项目上网电价市场化形成，项目收益测算与审批口径均处调整期，建议以县级发改部门书面答复为准。</p>
-        <span class="tag2">竞争强度：数据收集中，持续更新</span>
-      </div>
-      <div class="card cycle-card rv">
-        <div class="cy">基础设施与产业配套</div>
-        <p class="cd">多数项目为常年申报、按批次评审。东高垣村所在区域 2024—2026 年申报获批的对比统计尚在整理。</p>
-        <span class="tag2">获批率对比：数据收集中，持续更新</span>
-      </div>
-    </div>
-  </div>
-</section>
-
 <script src="assets/js/data.js"></script>
 <script src="assets/js/config.js"></script>
 <script src="assets/js/api.js"></script>
@@ -257,19 +223,8 @@ input[type=range]{width:100%;accent-color:var(--gold)}
   var FUND_LABELS = ["不限", "100万以下", "100—500万元", "500—2000万元", "2000万元以上"];
   var state = { role: "", feats: [], type: "", fund: 0 };
 
-  /* ---------- 环形上的四条件节点 ---------- */
-  var disc = document.getElementById("ringDisc");
-  var NODES = [["主体", "不限"], ["特征", "不限"], ["领域", "不限"], ["资金", "不限"]];
-  NODES.forEach(function (n, i) {
-    var el = document.createElement("div");
-    el.className = "ring-node"; el.id = "rn" + i;
-    var a = i * 90 - 90, rad = a * Math.PI / 180, R = 125;
-    el.style.left = (125 + Math.cos(rad) * R) + "px";
-    el.style.top = (125 + Math.sin(rad) * R) + "px";
-    el.innerHTML = '<span class="rn">' + n[0] + '</span><span class="rv2">' + n[1] + "</span>";
-    disc.appendChild(el);
-  });
-  function setNode(i, v) { document.querySelector("#rn" + i + " .rv2").textContent = v || "不限"; }
+  /* ---------- 当前条件条 ---------- */
+  function setNode(i, v) { document.getElementById("rn" + i).textContent = v || "不限"; }
 
   /* ---------- 匹配逻辑：主体/领域/资金为硬过滤，村庄特征决定排序 ---------- */
   function score(p) {
@@ -304,14 +259,11 @@ input[type=range]{width:100%;accent-color:var(--gold)}
     } else s += 6;
     return { s: Math.min(Math.round(s), 100), hard: hard };
   }
-  var orb = document.getElementById("orb"), resX = document.getElementById("resX"), resList = document.getElementById("resList");
+  var resX = document.getElementById("resX"), resList = document.getElementById("resList");
   function render() {
     var arr = projects.map(function (p) { var r = score(p); return { p: p, s: r.s, hard: r.hard }; })
       .filter(function (x) { return x.hard; })
       .sort(function (a, b) { return b.s - a.s; });
-    orb.textContent = arr.length;
-    var sz = Math.min(60 + arr.length * 1.6, 170);
-    orb.style.width = sz + "px"; orb.style.height = sz + "px";
     resX.textContent = arr.length;
     resList.innerHTML = arr.map(function (x, i) {
       var p = x.p;

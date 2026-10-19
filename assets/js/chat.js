@@ -1,195 +1,201 @@
 /*
- * 东高垣数字治理工作站软件 V1.0
- * Copyright (c) 2026 夏立轩
- * 智能问答悬浮组件
- * 左下角金色「问」按钮 → 聊天面板；由 main.js 动态加载，全站每页生效。
- * 提问先过本地 FAQ（assets/js/faq.js，与政策页口径问答同一份语料），
- * 关键词计分够阈值就直接答，不够再走云端问答边缘函数；断网时本地匹配照样能用。
+ * 东高垣数字治理工作站软件 V2.0
+ * Copyright (c) 2026 屋顶上的共富路项目组
+ * 图纸答疑组件：图框右缘悬浮跟随批注签 → 滑出批注栏。
+ * 双层问答：先本地 FAQ 计分匹配（faq.js），未命中再走云端问答边缘函数（auth.js MG.chat），
+ * 云端失败时放宽阈值再试一次本地，最后兜底服务电话。
  */
 (function () {
   "use strict";
   if (window.__mgcLoaded) return;
   window.__mgcLoaded = true;
 
-  var GOLD = "#D4A84B", GOLD2 = "#f0d78c";
   var CONTACT = (window.MG_CONFIG && window.MG_CONFIG.CONTACT) || {};
-  var FALLBACK = "暂时无法连接智能助手，请稍后再试" + (CONTACT.phone ? "，或拨打 " + CONTACT.phone + " 咨询。" : "。");
-  var WELCOME = "您好！我是东高垣数字治理工作站智能问答助手，已内置 22 条常见问题解答（租金、电价、维修、防骗等），其他关于政策智库、项目申报、东高垣实证数据、驻村调研的问题，也可以直接问我。";
+  var FALLBACK = "在线问答暂不可用，请拨打项目组服务电话 " + (CONTACT.phone || "") + " 咨询。";
+  var WELCOME = "可直接提问：政策口径、项目申报、东高垣实证数据、驻村调研。内置 22 条常见问题解答，未命中转在线问答。";
   var CHIPS = ["屋顶租金会不会少？", "屋顶漏水了找谁修？", "怎么识别光伏骗局？", "怎么预约驻村调研？"];
 
-  /* ---------- 样式注入（mgc- 前缀，避免冲突） ---------- */
-  var css =
-    ".mgc-fab{position:fixed;left:16px;bottom:16px;z-index:9990;width:56px;height:56px;border-radius:50%;border:1px solid rgba(255,255,255,.35);" +
-    "background:linear-gradient(135deg," + GOLD2 + "," + GOLD + ");color:#1a1405;font-size:22px;font-weight:700;cursor:pointer;" +
-    "box-shadow:0 8px 24px rgba(0,0,0,.4),0 0 0 4px rgba(212,168,75,.15);transition:transform .25s ease,box-shadow .25s ease;display:flex;align-items:center;justify-content:center;font-family:inherit}" +
-    ".mgc-fab:hover{transform:scale(1.08);box-shadow:0 10px 30px rgba(0,0,0,.5),0 0 0 6px rgba(212,168,75,.22)}" +
-    ".mgc-panel{position:fixed;left:16px;bottom:84px;z-index:9991;width:360px;height:480px;max-height:calc(100vh - 110px);" +
-    "background:rgba(20,22,28,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid " + GOLD + ";" +
-    "border-radius:18px;box-shadow:0 18px 50px rgba(0,0,0,.55);display:none;flex-direction:column;overflow:hidden;font-family:inherit}" +
-    ".mgc-panel.open{display:flex}" +
-    ".mgc-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(212,168,75,.35);background:rgba(212,168,75,.08)}" +
-    ".mgc-head b{display:block;font-size:15.5px;color:" + GOLD2 + ";letter-spacing:.04em}" +
-    ".mgc-head span{display:block;font-size:12px;color:#b9b2a2;margin-top:3px}" +
-    ".mgc-close{background:none;border:0;color:#b9b2a2;font-size:22px;line-height:1;cursor:pointer;padding:4px 8px;border-radius:8px;transition:all .2s}" +
-    ".mgc-close:hover{color:#fff;background:rgba(255,255,255,.08)}" +
-    ".mgc-body{flex:1;overflow-y:auto;padding:14px 14px 8px;display:flex;flex-direction:column;gap:10px}" +
-    ".mgc-body::-webkit-scrollbar{width:6px}.mgc-body::-webkit-scrollbar-thumb{background:rgba(212,168,75,.4);border-radius:3px}" +
-    ".mgc-msg{max-width:82%;padding:9px 13px;border-radius:14px;font-size:13.5px;line-height:1.65;word-break:break-word;white-space:pre-wrap}" +
-    ".mgc-msg.user{align-self:flex-end;background:linear-gradient(135deg," + GOLD2 + "," + GOLD + ");color:#1a1405;border-bottom-right-radius:4px}" +
-    ".mgc-msg.bot{align-self:flex-start;background:#efece4;color:#2a2a2a;border-bottom-left-radius:4px}" +
-    ".mgc-chips{display:flex;flex-wrap:wrap;gap:8px;padding:2px 0 6px}" +
-    ".mgc-chip{border:1px solid " + GOLD + ";color:" + GOLD2 + ";background:rgba(212,168,75,.08);border-radius:99px;padding:6px 13px;" +
-    "font-size:12.5px;cursor:pointer;transition:all .2s;font-family:inherit;text-align:left}" +
-    ".mgc-chip:hover{background:" + GOLD + ";color:#1a1405}" +
-    ".mgc-thinking{display:inline-flex;align-items:center;gap:5px}" +
-    ".mgc-thinking i{width:6px;height:6px;border-radius:50%;background:#8a8378;animation:mgc-blink 1.2s infinite}" +
-    ".mgc-thinking i:nth-child(2){animation-delay:.2s}.mgc-thinking i:nth-child(3){animation-delay:.4s}" +
-    "@keyframes mgc-blink{0%,80%,100%{opacity:.25}40%{opacity:1}}" +
-    ".mgc-input{display:flex;gap:8px;padding:12px;border-top:1px solid rgba(212,168,75,.35);background:rgba(0,0,0,.25)}" +
-    ".mgc-input input{flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(212,168,75,.4);border-radius:10px;padding:9px 12px;" +
-    "font-size:13.5px;color:#f0ece2;outline:none;font-family:inherit}" +
-    ".mgc-input input:focus{border-color:" + GOLD2 + "}" +
-    ".mgc-input input::placeholder{color:#8a8378}" +
-    ".mgc-send{background:linear-gradient(135deg," + GOLD2 + "," + GOLD + ");border:0;color:#1a1405;font-size:13.5px;font-weight:700;" +
-    "border-radius:10px;padding:0 18px;cursor:pointer;transition:filter .2s;font-family:inherit}" +
-    ".mgc-send:hover{filter:brightness(1.1)}.mgc-send:disabled{opacity:.5;cursor:not-allowed}" +
-    "@media (max-width:560px){.mgc-panel{left:0;right:0;bottom:0;width:100%;height:72vh;max-height:72vh;border-radius:18px 18px 0 0}" +
-    ".mgc-fab{left:12px;bottom:12px}}";
-  var st = document.createElement("style");
-  st.textContent = css;
-  document.head.appendChild(st);
+  /* ---------- 本地 FAQ 匹配：关键词按字数加权计分＋问句二字重合 ---------- */
+  var FAQ_MIN_KW = 2, FAQ_MIN_SCORE = 9;
+  function faqNorm(t) {
+    return String(t || "").replace(/[？?！!，,。．.、；;：:\s「」『』"'“”‘’（）()]/g, "");
+  }
+  function faqScore(it, t) {
+    var kw = 0;
+    for (var j = 0; j < it.k.length; j++) {
+      var w = it.k[j];
+      if (w && t.indexOf(w) > -1) kw += w.length;
+    }
+    var q = faqNorm(it.q), bi = 0;
+    for (var p = 0; p < q.length - 1; p++) {
+      if (t.indexOf(q.substr(p, 2)) > -1) bi++;
+    }
+    return { kw: kw, score: kw * 3 + bi };
+  }
+  function faqMatch(text, relaxed) {
+    var list = window.MGFAQ;
+    if (!list || !list.length) return null;
+    var t = faqNorm(text);
+    if (!t) return null;
+    var best = null, bestKw = 0, bestScore = 0;
+    for (var i = 0; i < list.length; i++) {
+      var r = faqScore(list[i], t);
+      if (r.score > bestScore) { best = list[i]; bestKw = r.kw; bestScore = r.score; }
+    }
+    var needScore = relaxed ? 6 : FAQ_MIN_SCORE;
+    if (best && bestKw >= FAQ_MIN_KW && bestScore >= needScore) return best;
+    return null;
+  }
+  function faqReply(it) {
+    var tail = "";
+    if (it.ref) tail = it.ref.indexOf("第") === 0 ? "\n（详见手册 " + it.ref + "）" : "\n（来源：" + it.ref + "）";
+    return (it.g ? "【" + it.g + "】\n" : "") + it.a + tail;
+  }
 
-  /* ---------- 结构 ---------- */
-  var fab = document.createElement("button");
-  fab.className = "mgc-fab";
-  fab.setAttribute("aria-label", "智能问答");
-  fab.textContent = "问";
+  /* faq.js 未必已加载，缺了第一次提问前补上；并发挂队列 */
+  var faqCbs = null;
+  function ensureFaq(cb) {
+    if (window.MGFAQ) { cb(); return; }
+    if (faqCbs) { faqCbs.push(cb); return; }
+    faqCbs = [cb];
+    var s = document.createElement("script");
+    s.src = "assets/js/faq.js";
+    function done() { var cbs = faqCbs; faqCbs = null; cbs.forEach(function (f) { f(); }); }
+    s.onload = done;
+    s.onerror = function () { done(); };
+    document.body.appendChild(s);
+  }
+
+  /* ---------- 结构：批注签 + 批注栏 ---------- */
+  var tab = document.createElement("button");
+  tab.className = "qa-tab";
+  tab.setAttribute("aria-label", "答疑");
+  tab.textContent = "答 疑";
+
+  var mask = document.createElement("div");
+  mask.className = "qa-mask";
 
   var panel = document.createElement("div");
-  panel.className = "mgc-panel";
+  panel.className = "qa-panel";
+  panel.setAttribute("role", "dialog");
+  panel.setAttribute("aria-label", "图纸答疑");
   panel.innerHTML =
-    '<div class="mgc-head"><div><b>东高垣数字治理工作站智能问答助手</b><span>政策、模式、申报、手册，有问必答</span></div>' +
-    '<button class="mgc-close" aria-label="关闭">×</button></div>' +
-    '<div class="mgc-body"></div>' +
-    '<div class="mgc-input"><input type="text" placeholder="请输入您的问题…" maxlength="500">' +
-    '<button class="mgc-send">发送</button></div>';
-  document.body.appendChild(fab);
+    '<div class="qa-head"><b>答 疑<i>ANNOTATION</i></b>' +
+    '<button class="qa-close" aria-label="关闭">×</button></div>' +
+    '<div class="qa-body"></div>' +
+    '<div class="qa-foot"><input type="text" placeholder="请输入问题…" maxlength="500">' +
+    '<button class="qa-send">提问</button></div>';
+  document.body.appendChild(tab);
+  document.body.appendChild(mask);
   document.body.appendChild(panel);
 
-  var body = panel.querySelector(".mgc-body");
-  var input = panel.querySelector(".mgc-input input");
-  var sendBtn = panel.querySelector(".mgc-send");
-  var hist = []; // {role, content}，保留最近 10 条
+  var body = panel.querySelector(".qa-body");
+  var input = panel.querySelector(".qa-foot input");
+  var sendBtn = panel.querySelector(".qa-send");
+  var hist = [];
   var welcomed = false;
 
   function scrollEnd() { body.scrollTop = body.scrollHeight; }
-
-  function addMsg(role, text) {
+  function addQ(text) {
     var d = document.createElement("div");
-    d.className = "mgc-msg " + (role === "user" ? "user" : "bot");
+    d.className = "qa-q";
     d.textContent = text;
-    body.appendChild(d);
-    scrollEnd();
-    return d;
+    body.appendChild(d); scrollEnd();
   }
-
+  function addA(text, tag) {
+    var d = document.createElement("div");
+    d.className = "qa-a";
+    if (tag) {
+      var t = document.createElement("span");
+      t.className = "tag"; t.textContent = tag;
+      d.appendChild(t);
+    }
+    d.appendChild(document.createTextNode(text));
+    body.appendChild(d); scrollEnd();
+  }
   function addChips() {
     var box = document.createElement("div");
-    box.className = "mgc-chips";
+    box.className = "qa-chips";
     CHIPS.forEach(function (c) {
       var b = document.createElement("button");
-      b.className = "mgc-chip";
+      b.className = "qa-chip";
       b.textContent = c;
       b.addEventListener("click", function () { box.remove(); send(c); });
       box.appendChild(b);
     });
-    body.appendChild(box);
-    scrollEnd();
+    body.appendChild(box); scrollEnd();
   }
-
   function welcome() {
     if (welcomed) return;
     welcomed = true;
-    addMsg("bot", WELCOME);
+    addA(WELCOME, "注记");
     addChips();
   }
 
   var thinkingEl = null;
   function showThinking() {
     thinkingEl = document.createElement("div");
-    thinkingEl.className = "mgc-msg bot";
-    thinkingEl.innerHTML = '<span style="margin-right:6px">正在思考…</span><span class="mgc-thinking"><i></i><i></i><i></i></span>';
-    body.appendChild(thinkingEl);
-    scrollEnd();
+    thinkingEl.className = "qa-thinking";
+    thinkingEl.textContent = "在线问答检索中…";
+    body.appendChild(thinkingEl); scrollEnd();
   }
   function hideThinking() {
     if (thinkingEl) { thinkingEl.remove(); thinkingEl = null; }
-  }
-
-  /* ---------- 本地 FAQ 匹配 ----------
-     计分：语料关键词每命中一个 +2；问题原文与提问的连续双字重合每个 +1（封顶 4）。
-     得分阈值 3：低于该值走兜底回复（转云端问答），避免关键词单点命中造成答非所问 */
-  function faqMatch(text) {
-    var list = window.MGFAQ || [];
-    var best = null, bestScore = 0;
-    list.forEach(function (x) {
-      var s = 0;
-      (x.k || []).forEach(function (w) { if (text.indexOf(w) >= 0) s += 2; });
-      if (!s) return; /* 关键词零命中直接跳过，双字重合太容易误伤 */
-      var q = x.q || "", bg = 0;
-      for (var i = 0; i < text.length - 1; i++) { if (q.indexOf(text.substr(i, 2)) >= 0) bg++; }
-      s += Math.min(bg, 4);
-      if (s > bestScore) { bestScore = s; best = x; }
-    });
-    return bestScore >= 3 ? best : null;
   }
 
   function send(text) {
     text = String(text || "").trim();
     if (!text) return;
     input.value = "";
-    addMsg("user", text);
+    addQ(text);
     hist.push({ role: "user", content: text });
     hist = hist.slice(-10);
     sendBtn.disabled = true;
-    /* 先本地 FAQ：命中就直接答（标出来源），不耗费云端调用 */
-    var hit = faqMatch(text);
-    if (hit) {
-      sendBtn.disabled = false;
-      var reply = "【常见问题解答】" + hit.a + "\n依据：" + hit.b;
-      addMsg("bot", reply);
-      hist.push({ role: "assistant", content: reply });
-      hist = hist.slice(-10);
-      input.focus();
-      return;
-    }
     showThinking();
-    var finish = function (reply) {
+    var finish = function (reply, tag) {
       hideThinking();
       sendBtn.disabled = false;
       reply = (reply && String(reply).trim()) ? String(reply) : FALLBACK;
-      addMsg("bot", reply);
+      addA(reply, tag);
       hist.push({ role: "assistant", content: reply });
       hist = hist.slice(-10);
       input.focus();
     };
+    var localOrFallback = function () {
+      var hit = faqMatch(text, true);
+      finish(hit ? faqReply(hit) : FALLBACK, hit ? "注记" : null);
+    };
     try {
-      if (!window.MG || typeof MG.chat !== "function") { finish(FALLBACK); return; }
-      Promise.resolve(MG.chat(hist.slice(-10))).then(function (r) {
-        finish(r && r.reply);
-      }, function () { finish(FALLBACK); });
+      ensureFaq(function () {
+        var hit = faqMatch(text, false);
+        if (hit) { finish(faqReply(hit), "注记"); return; }
+        if (!window.MG || typeof MG.chat !== "function") { localOrFallback(); return; }
+        Promise.resolve(MG.chat(hist.slice(-10))).then(function (r) {
+          if (r && r.reply) finish(r.reply, "在线问答"); else localOrFallback();
+        }, localOrFallback);
+      });
     } catch (e) { finish(FALLBACK); }
   }
 
-  fab.addEventListener("click", function () {
-    panel.classList.toggle("open");
-    if (panel.classList.contains("open")) { welcome(); input.focus(); }
-  });
-  panel.querySelector(".mgc-close").addEventListener("click", function () {
-    panel.classList.remove("open");
-  });
+  function openPanel() {
+    panel.classList.add("open"); mask.classList.add("open");
+    welcome(); input.focus();
+  }
+  function closePanel() {
+    panel.classList.remove("open"); mask.classList.remove("open");
+  }
+  tab.addEventListener("click", openPanel);
+  mask.addEventListener("click", closePanel);
+  panel.querySelector(".qa-close").addEventListener("click", closePanel);
   sendBtn.addEventListener("click", function () { send(input.value); });
   input.addEventListener("keydown", function (e) {
     if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); send(input.value); }
   });
+
+  /* 顶带「答疑」入口 */
+  var navEntry = document.getElementById("qaEntry");
+  if (navEntry) navEntry.addEventListener("click", function (e) { e.preventDefault(); openPanel(); });
+
+  /* 语料提前预热 */
+  ensureFaq(function () { });
 })();

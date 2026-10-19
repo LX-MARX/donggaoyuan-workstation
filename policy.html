@@ -39,37 +39,11 @@
 .ptag:hover{background:rgba(212,168,75,.16)}
 .results::-webkit-scrollbar{width:8px}.results::-webkit-scrollbar-thumb{background:rgba(212,168,75,.3);border-radius:4px}
 
-/* ================= 3D 政策层级塔 ================= */
-.tower-wrap{height:600px;position:relative;display:flex;align-items:center;justify-content:center}
-.tower-scene{perspective:1300px;width:100%;height:100%;display:flex;align-items:center;justify-content:center}
-.tower{position:relative;width:340px;height:340px;transform-style:preserve-3d;transform:rotateX(62deg) rotateZ(-38deg);transition:transform 1s cubic-bezier(.16,1,.3,1)}
-.tower.spin{animation:towerSpin 26s linear infinite}
-@keyframes towerSpin{from{transform:rotateX(62deg) rotateZ(-38deg)}to{transform:rotateX(62deg) rotateZ(322deg)}}
-.platform{
-  position:absolute;left:50%;top:50%;transform-style:preserve-3d;cursor:pointer;
-  border:2px solid rgba(212,168,75,.55);border-radius:14px;
-  background:linear-gradient(135deg,rgba(18,35,58,.9),rgba(212,168,75,.12));
-  box-shadow:0 0 30px rgba(212,168,75,.15),inset 0 0 40px rgba(212,168,75,.06);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
-  transition:box-shadow .4s,border-color .4s;
-}
-.platform .pn{font-family:var(--serif);font-size:17px;font-weight:800;color:var(--moon);transform:rotateZ(38deg) rotateX(-62deg) translateZ(2px);white-space:nowrap}
-.platform .pc{font-family:var(--mono);font-size:13px;color:var(--gold-warm);transform:rotateZ(38deg) rotateX(-62deg) translateZ(2px)}
-.platform.sel{border-color:var(--gold-warm);box-shadow:0 0 46px rgba(240,215,140,.45),inset 0 0 50px rgba(212,168,75,.16);background:linear-gradient(135deg,rgba(212,168,75,.28),rgba(18,35,58,.9))}
-.layer-dot{position:absolute;width:5px;height:5px;border-radius:50%;background:var(--gold-warm);box-shadow:0 0 10px var(--gold-warm);animation:rise 2.6s linear infinite;opacity:0}
-@keyframes rise{0%{transform:translateY(0);opacity:0}18%{opacity:.95}100%{transform:translateY(-92px);opacity:0}}
-.tower-panel{
-  position:absolute;right:2%;top:50%;transform:translateY(-50%);width:min(400px,44vw);max-height:520px;overflow:auto;
-  padding:26px 26px 20px;z-index:5;
-}
-.tower-panel h4{font-family:var(--serif);font-size:20px;color:var(--gold-warm);margin-bottom:4px}
-.tower-panel .cnt{font-size:12.5px;color:#8FA8BF;margin-bottom:14px}
-.tower-panel .cnt b{color:var(--gold-warm);font-family:var(--mono);font-size:16px}
-.tower-panel .pi{padding:10px 0;border-bottom:1px dashed rgba(212,168,75,.2);font-size:13px}
-.tower-panel .pi .t{color:var(--moon);font-weight:600}
-.tower-panel .pi .m{color:#7E95AB;font-size:11.5px;margin-top:2px}
-.tower-hint{position:absolute;left:2%;bottom:4%;font-size:12px;color:#6E869B;letter-spacing:.1em;z-index:5}
-@media(max-width:900px){.tower-panel{position:relative;right:auto;top:auto;transform:none;width:100%;margin:20px auto 0;max-height:360px}.tower-wrap{height:auto;flex-direction:column;padding:40px 0}.tower-scene{height:480px}.tower-hint{position:static;margin:14px 0 0 4px}}
+/* ================= 五级分层浏览 ================= */
+.lvl-tabs{display:flex;gap:10px;flex-wrap:wrap}
+.lvl-tabs .tag{padding:9px 20px;border-radius:0;font-size:13.5px;letter-spacing:.08em;border:1px solid var(--ivory-35);color:var(--ivory);background:transparent;transition:all .25s;font-family:var(--fz)}
+.lvl-tabs .tag:hover{border-color:var(--amber);color:var(--amber)}
+.lvl-tabs .tag.on{background:var(--amber);color:var(--bp-deep);border-color:transparent;font-weight:600}
 
 /* ================= 演进时间轴 ================= */
 .tl{display:flex;gap:0;overflow-x:auto;padding:30px 4px 20px;position:relative}
@@ -117,7 +91,7 @@
 .qa-doc .row{margin-bottom:16px;font-size:14px}
 .qa-doc .row b{display:block;font-size:12px;letter-spacing:.2em;color:var(--gold);margin-bottom:5px}
 .qa-doc .seal{margin-top:28px;display:flex;justify-content:flex-end}
-.qa-doc .seal span{width:120px;height:120px;border:2px dashed rgba(200,75,63,.55);border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;color:rgba(200,75,63,.8);line-height:1.6;padding:12px}
+.qa-doc .seal span{width:auto;min-width:120px;height:auto;border:1px dashed rgba(34,48,63,.4);border-radius:0;display:inline-block;text-align:center;font-size:12px;color:var(--ink-soft);line-height:1.8;padding:10px 16px}
 .qa-warn{margin-top:14px;font-size:12px;color:var(--cinnabar)}
 </style>
 </head>
@@ -135,15 +109,15 @@
       <p class="src">政策库口径：已收录 121 条，剔除 2 条误入库，展示 119 条</p>
     </div>
     <div class="glass rv" style="padding:30px;text-align:center">
-      <div style="font-size:12px;letter-spacing:.24em;color:var(--gold-warm);margin-bottom:18px">政策层级塔 · 五级体系</div>
+      <div style="font-size:12.5px;letter-spacing:.24em;color:var(--amber);margin-bottom:18px;font-family:var(--fz)">政策层级 · 五级体系</div>
       <div style="display:flex;flex-direction:column;gap:8px;align-items:center">
-        <div style="width:170px;padding:9px 0;border:1px solid rgba(240,215,140,.6);border-radius:8px;font-size:12.5px;color:var(--gold-warm)">国家级 · 12 条</div>
-        <div style="width:150px;padding:8px 0;border:1px solid rgba(212,168,75,.45);border-radius:8px;font-size:12px;color:#C6D3E0">省级 · 32 条</div>
-        <div style="width:130px;padding:8px 0;border:1px solid rgba(212,168,75,.35);border-radius:8px;font-size:12px;color:#9FB4C8">市级 · 31 条</div>
-        <div style="width:112px;padding:8px 0;border:1px solid rgba(212,168,75,.28);border-radius:8px;font-size:12px;color:#8FA8BF">县级 · 24 条</div>
-        <div style="width:96px;padding:8px 0;border:1px solid rgba(212,168,75,.22);border-radius:8px;font-size:12px;color:#7E95AB">镇村级 · 20 条</div>
+        <div style="width:170px;padding:9px 0;border:1px solid var(--ivory-35);font-size:13px;color:var(--ivory)">国家级 · 12 条</div>
+        <div style="width:150px;padding:8px 0;border:1px solid var(--ivory-35);font-size:12.5px;color:var(--ivory-60)">省级 · 32 条</div>
+        <div style="width:130px;padding:8px 0;border:1px solid var(--ivory-15);font-size:12.5px;color:var(--ivory-60)">市级 · 31 条</div>
+        <div style="width:112px;padding:8px 0;border:1px solid var(--ivory-15);font-size:12.5px;color:var(--ivory-60)">县级 · 24 条</div>
+        <div style="width:96px;padding:8px 0;border:1px solid var(--ivory-15);font-size:12.5px;color:var(--ivory-35)">镇村级 · 20 条</div>
       </div>
-      <a href="#towerSec" style="display:inline-block;margin-top:18px;font-size:12px;color:var(--gold-warm);letter-spacing:.1em">进入 3D 层级塔 ↓</a>
+      <a href="#towerSec" style="display:inline-block;margin-top:18px;font-size:12.5px;color:var(--amber);letter-spacing:.1em;border-bottom:1px solid rgba(217,164,65,.5);padding-bottom:2px">查看分层清单</a>
     </div>
   </div>
 </section>
@@ -166,18 +140,17 @@
   </div>
 </section>
 
-<!-- ================= 3. 3D 政策层级塔 ================= -->
-<section class="section dark noise scanlines" id="towerSec">
+<!-- ================= 3. 五级政策分层浏览 ================= -->
+<section class="section dark noise" id="towerSec">
   <div class="container">
     <div class="section-head rv">
-      <div class="kicker">3D 政策层级塔</div>
-      <h2 class="h-sec">五级政策，一塔贯通</h2>
-      <p class="lead">国家、省、市、县、镇村五级政策以悬浮平台呈现，层间粒子流象征政策传导。点击任一层级，展开该层全部收录文件。</p>
+      <div class="kicker">分层浏览</div>
+      <h2 class="h-sec">五级政策体系</h2>
+      <p class="lead">国家、省、市、县、镇村五级收录文件。点击层级标签，展开该层全部收录文件。</p>
     </div>
-    <div class="tower-wrap rv">
-      <div class="tower-scene"><div class="tower spin" id="tower"></div></div>
-      <div class="glass tower-panel" id="towerPanel"></div>
-      <div class="tower-hint">◈ 点击平台查看该层级政策清单</div>
+    <div class="rv">
+      <div class="lvl-tabs" id="lvlTabs"></div>
+      <div class="glass" id="towerPanel" style="padding:26px 28px;margin-top:22px;max-height:520px;overflow:auto"></div>
     </div>
   </div>
 </section>
@@ -201,10 +174,10 @@
     <div class="section-head rv">
       <div class="kicker">重点政策</div>
       <h2 class="h-sec">12 项重点政策速览</h2>
-      <p class="lead">摘自《光伏村建设手册》附录 C.1，按“核心方向—基层落实要点”整理。点击卡片展开完整要点。</p>
+      <p class="lead">摘自《整村分布式光伏建设手册》附录 C.1，按“核心方向—基层落实要点”整理。点击卡片展开完整要点。</p>
     </div>
     <div class="grid-3" id="polCards"></div>
-    <p class="src rv">内容来源：《光伏村建设手册》附录 C.1；政策条款以公开发布的原文为准</p>
+    <p class="src rv">内容来源：《整村分布式光伏建设手册》附录 C.1；政策条款以公开发布的原文为准</p>
   </div>
 </section>
 
@@ -214,7 +187,7 @@
     <div class="section-head rv">
       <div class="kicker">交互工具</div>
       <h2 class="h-sec">政策口径问答书生成器</h2>
-      <p class="lead">按《光伏村建设手册》8.5 节口径问答书模板，将农户与村干部的原话问题转为规范书面答复草稿，供县级部门核实、盖章后下发宣讲。</p>
+      <p class="lead">按《整村分布式光伏建设手册》8.5 节口径问答书模板，将农户与村干部的原话问题转为规范书面答复草稿，供县级部门核实、盖章后下发宣讲。</p>
     </div>
     <div class="qa-grid">
       <div class="rv">
@@ -234,7 +207,7 @@
         <div class="row"><b>答　复</b><span id="qaA">——</span></div>
         <div class="row"><b>依据文件</b><span id="qaB">——</span></div>
         <div class="row"><b>适用对象</b><span id="qaT">——</span></div>
-        <div class="seal"><span>答复单位<br>（县级能源主管部门<br>或发展改革部门）<br>盖章处</span></div>
+        <div class="seal"><span>草稿 · 供县级部门<br>核实后使用</span></div>
       </div>
     </div>
   </div>
@@ -380,52 +353,35 @@
   render();
   syncPolicies(); /* 首屏先出本地缓存，随后尝试切换云端实时数据 */
 
-  /* ================= 3D 政策层级塔 ================= */
+  /* ================= 五级政策分层浏览 ================= */
   var LEVELS = [
-    { k: "国家级", n: "国家级", size: 300 },
-    { k: "省级", n: "省级", size: 262 },
-    { k: "市级", n: "市级", size: 224 },
-    { k: "县级", n: "县级", size: 186 },
-    { k: "镇村级", n: "镇村级", size: 148 }
+    { k: "国家级", n: "国家级" },
+    { k: "省级", n: "省级" },
+    { k: "市级", n: "市级" },
+    { k: "县级", n: "县级" },
+    { k: "镇村级", n: "镇村级" }
   ];
   /* 各层条数由数据实算，避免硬编码与库脱节 */
   LEVELS.forEach(function (L) { L.c = policies.filter(function (p) { return p.level === L.k; }).length; });
-  var tower = document.getElementById("tower"), panel = document.getElementById("towerPanel");
-  var GAP = 78;
-  LEVELS.forEach(function (L, i) {
-    var el = document.createElement("div");
-    el.className = "platform";
-    el.style.width = L.size + "px"; el.style.height = L.size + "px";
-    el.style.marginLeft = -L.size / 2 + "px"; el.style.marginTop = -L.size / 2 + "px";
-    el.style.transform = "translateZ(" + ((LEVELS.length - 1 - i) * GAP) + "px)";
-    el.innerHTML = '<span class="pn">' + L.n + '</span><span class="pc">' + L.c + " 条</span>";
-    el.addEventListener("click", function () { selectLevel(L.k, el); });
-    tower.appendChild(el);
-    L.el = el;
-  });
-  /* 层间粒子流 */
-  for (var d = 0; d < 14; d++) {
-    var dot = document.createElement("span");
-    dot.className = "layer-dot";
-    dot.style.left = (38 + Math.random() * 24) + "%";
-    dot.style.top = (30 + Math.random() * 40) + "%";
-    dot.style.animationDelay = (Math.random() * 2.6) + "s";
-    tower.parentElement.appendChild(dot);
-  }
-  tower.addEventListener("mouseenter", function () { tower.classList.remove("spin"); });
-  tower.addEventListener("mouseleave", function () { tower.classList.add("spin"); });
-  function selectLevel(k, el) {
-    LEVELS.forEach(function (L) { L.el.classList.toggle("sel", L.el === el); });
+  var panel = document.getElementById("towerPanel"), tabs = document.getElementById("lvlTabs");
+  tabs.innerHTML = LEVELS.map(function (L, i) {
+    return '<button type="button" class="tag' + (i === 0 ? " on" : "") + '" data-lv="' + L.k + '">' + L.n + " · " + L.c + " 条</button>";
+  }).join("");
+  function selectLevel(k) {
+    tabs.querySelectorAll(".tag").forEach(function (b) { b.classList.toggle("on", b.getAttribute("data-lv") === k); });
     var list = policies.filter(function (p) { return p.level === k; })
       .sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); });
-    panel.innerHTML = "<h4>" + k + "政策</h4>" +
-      '<div class="cnt">收录 <b>' + list.length + "</b> 条 · 占全库 " + (list.length / D.meta.policyShown * 100).toFixed(1) + "%</div>" +
+    panel.innerHTML = "<h4 style='font-family:var(--serif);font-size:20px;color:var(--ivory);margin-bottom:4px'>" + k + "政策</h4>" +
+      '<div style="font-size:12.5px;color:var(--ivory-60);margin-bottom:14px;font-family:var(--fz)">收录 <b style="color:var(--amber)">' + list.length + "</b> 条 · 占全库 " + (list.length / D.meta.policyShown * 100).toFixed(1) + "%</div>" +
       list.map(function (p) {
-        return '<div class="pi"><div class="t">' + esc(p.title) + '</div><div class="m">' + esc(p.org) + " · " + esc(p.docNo || "无文号") + " · " + esc(p.date) + "</div></div>";
+        return '<div style="padding:10px 0;border-bottom:1px dashed var(--ivory-15);font-size:13.5px"><div style="color:var(--ivory);font-weight:600">' + esc(p.title) + '</div><div style="color:var(--ivory-35);font-size:12px;margin-top:2px">' + esc(p.org) + " · " + esc(p.docNo || "无文号") + " · " + esc(p.date) + "</div></div>";
       }).join("");
     panel.scrollTop = 0;
   }
-  selectLevel("国家级", LEVELS[0].el);
+  tabs.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-lv]"); if (b) selectLevel(b.getAttribute("data-lv"));
+  });
+  selectLevel("国家级");
 
   /* ================= 演进时间轴 ================= */
   var TL = D.timeline; /* 时间线数据已迁移至 assets/js/data.js（WS_DATA.timeline） */
@@ -491,7 +447,7 @@
     if (best) fillQA(v, best.a, best.b, best.t + "（参照口径：" + best.q + "）");
     else fillQA(v,
       "未匹配到现成口径。建议先在上方政策库检索关键词核实政策依据，或由村两委转报县级主管部门书面答复；在书面口径下发前，镇、村宣讲不作口头承诺。",
-      "待县级部门核实后填写对应文件名与文号（模板见《光伏村建设手册》8.5 节）。",
+      "待县级部门核实后填写对应文件名与文号（模板见《整村分布式光伏建设手册》8.5 节）。",
       "待核实后按存量项目 / 增量项目 / 待建项目区分");
   });
   fillQA(QA[0].q, QA[0].a, QA[0].b, QA[0].t);
