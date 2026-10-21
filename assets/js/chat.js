@@ -192,4 +192,10 @@
   input.addEventListener("keydown", function (e) {
     if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); send(input.value); }
   });
+
+  /* 供页面内「问这条政策」等入口调用的编程接口 */
+  window.MGC = {
+    open: function () { if (!panel.classList.contains("open")) { panel.classList.add("open"); welcome(); } input.focus(); },
+    ask: function (text) { window.MGC.open(); send(text); }
+  };
 })();

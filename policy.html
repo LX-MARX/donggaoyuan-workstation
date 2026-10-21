@@ -78,7 +78,7 @@
 .tl-node{flex:1 0 190px;padding:0 14px;cursor:pointer;position:relative;text-align:center}
 .tl-node .dot{width:14px;height:14px;border-radius:50%;border:3px solid var(--gold);background:var(--paper);margin:8px auto 14px;transition:all .3s;position:relative;z-index:2}
 .tl-node.on .dot{background:var(--gold);box-shadow:0 0 16px rgba(212,168,75,.8)}
-.tl-node .yr{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--jade)}
+.tl-node .yr{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--gold-soft)}
 .tl-node .tt{font-size:13px;font-weight:700;color:var(--fg);margin-top:4px}
 .tl-detail{margin-top:26px;display:none}
 .tl-detail.on{display:block}
@@ -113,8 +113,8 @@
 .qa-input input{flex:1;border:1px solid var(--panel-bd);border-radius:10px;padding:13px 16px;font-size:14px;font-family:inherit;outline:none}
 .qa-input input:focus{border-color:var(--gold)}
 .qa-doc{background:var(--panel-bg);border:1px solid var(--panel-bd);border-radius:var(--r-lg);padding:38px 42px;box-shadow:0 16px 44px var(--panel-bd);color:var(--fg)}
-.qa-doc h4{font-family:var(--serif);text-align:center;font-size:21px;letter-spacing:.14em;color:var(--jade);margin-bottom:6px}
-.qa-doc .qn{text-align:center;font-size:12px;color:var(--ink-soft);margin-bottom:24px;font-family:var(--mono)}
+.qa-doc h4{font-family:var(--serif);text-align:center;font-size:21px;letter-spacing:.14em;color:var(--gold-soft);margin-bottom:6px}
+.qa-doc .qn{text-align:center;font-size:12px;color:var(--sub);margin-bottom:24px;font-family:var(--mono)}
 .qa-doc .row{margin-bottom:16px;font-size:14px}
 .qa-doc .row b{display:block;font-size:12px;letter-spacing:.2em;color:var(--gold);margin-bottom:5px}
 .qa-doc .seal{margin-top:28px;display:flex;justify-content:flex-end}
@@ -132,6 +132,7 @@
 .pdrawer .pdh b{font-size:14px;color:var(--gold-warm);letter-spacing:.1em}
 .pdrawer .pdc{background:none;border:1px solid rgba(240,215,140,.4);color:var(--moon);width:34px;height:34px;border-radius:6px;font-size:16px;cursor:pointer}
 .pdrawer .pdb{flex:1;overflow-y:auto;padding:22px 24px;font-size:14.5px;line-height:1.9}
+.pitem mark,.pdrawer mark{background:rgba(232,201,138,.28);color:var(--gold-warm);border-radius:2px;padding:0 1px}
 .pdrawer .pdb h3{font-family:var(--serif);font-size:19px;color:var(--moon);line-height:1.6;margin-bottom:14px}
 .pdrawer .pd-meta{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:13px;color:#8FA8BF;margin-bottom:16px}
 .pdrawer .pd-meta b{color:var(--gold-warm);font-weight:600}
@@ -240,7 +241,7 @@
     </div>
     <div class="qa-grid">
       <div class="rv">
-        <div style="font-size:13px;font-weight:700;color:var(--jade);letter-spacing:.08em">选择常见问题，或输入自定义问题：</div>
+        <div style="font-size:13px;font-weight:700;color:var(--gold-soft);letter-spacing:.08em">选择常见问题，或输入自定义问题：</div>
         <div class="qa-presets" id="qaPresets"></div>
         <div class="qa-input">
           <input id="qaCustom" type="text" placeholder="例如：屋顶漏雨了找谁修？">
@@ -299,6 +300,7 @@
   var cloudCache = {}, syncToken = 0;
   /* 云端拉取策略：级别标签决定下发条件并缓存该级别全量；“全部”级别拉一次全库缓存；
      领域／年份／机关／关键词均为前端组合过滤 */
+  var PAGE_SIZE = 20, shownCount = PAGE_SIZE, lastSig = "";
   function syncPolicies() {
     var key = flt.level, token = ++syncToken;
     if (cloudCache[key]) { policies = cloudCache[key]; render(); return; }
@@ -380,16 +382,33 @@
       .map(function (g) { return g.label + "：" + flt[g.key]; });
     statEl.innerHTML = "已收录 <b>" + D.meta.policyTotal + "</b> 条，剔除 <b>" + (D.meta.policyTotal - D.meta.policyShown) + "</b> 条误入库，展示 <b>" + D.policies.length + "</b> 条，覆盖 " + D.meta.yearRange + " 年 · 匹配 <b>" + list.length + "</b> 条" +
       (active.length ? " 丨 " + active.join(" 丨 ") : "");
-    resEl.innerHTML = list.slice(0, 120).map(function (p) {
+    /* 筛选条件变化时回到第一页 */
+    var sig = JSON.stringify(flt) + "|" + q + "|" + policies.length;
+    if (sig !== lastSig) { lastSig = sig; shownCount = PAGE_SIZE; }
+    /* 检索词高亮 */
+    function hl(text) {
+      var s = esc(text || ""); if (!q) return s;
+      q.split(/\s+/).forEach(function (w) {
+        if (!w) return;
+        var re = new RegExp(w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
+        s = s.replace(re, function (m) { return "<mark>" + m + "</mark>"; });
+      });
+      return s;
+    }
+    resEl.innerHTML = list.slice(0, shownCount).map(function (p) {
       var y = yearOf(p);
       var chips = (p.topics || []).map(function (t) { return '<button class="ptag" type="button" data-topic="' + esc(t) + '">' + esc(t) + "</button>"; }).join("");
       var pidx = policies.indexOf(p);
-      return '<div class="pitem" data-idx="' + pidx + '"><div class="pt">' + esc(p.title) + '</div><div class="pm"><span class="lv">' + esc(p.level) + " · " + esc(p.level5) + "</span>" +
+      return '<div class="pitem" data-idx="' + pidx + '"><div class="pt">' + hl(p.title) + '</div><div class="pm"><span class="lv">' + esc(p.level) + " · " + esc(p.level5) + "</span>" +
         (y ? '<span class="lv">' + esc(y) + " 年</span>" : "") +
-        "<span>" + esc(p.org) + "</span><span>" + esc(p.docNo || "无文号") + "</span><span>" + esc(p.date) + '</span></div><div class="ps">' + esc(p.applyPoint) + "</div>" +
+        "<span>" + esc(p.org) + "</span><span>" + esc(p.docNo || "无文号") + "</span><span>" + esc(p.date) + '</span></div><div class="ps">' + hl(p.applyPoint) + "</div>" +
         (chips ? '<div class="ptags">' + chips + "</div>" : "") + "</div>";
     }).join("") || '<div class="pitem"><div class="pt">未检索到匹配政策，请调整关键词或筛选标签。</div></div>';
-    if (list.length > 120) resEl.innerHTML += '<div class="pitem"><div class="pm">仅显示前 120 条，请增加关键词缩小范围。</div></div>';
+    if (list.length > shownCount) {
+      resEl.innerHTML += '<div style="text-align:center;padding:18px 0 6px"><button class="btn btn-ghost btn-sm" id="moreBtn">加载更多（还有 ' + (list.length - shownCount) + " 条）</button></div>";
+      var mb = document.getElementById("moreBtn");
+      if (mb) mb.addEventListener("click", function () { shownCount += PAGE_SIZE; render(); });
+    }
   }
   /* 点政策卡片上的主题 chip ＝ 选中该主题筛选（再点标签云里的「全部」取消） */
   resEl.addEventListener("click", function (e) {
@@ -419,9 +438,16 @@
       (p.applyPoint ? '<div class="pd-sec"><h6>基层落实要点</h6><p>' + esc(p.applyPoint) + "</p></div>" : "") +
       (p.summary ? '<div class="pd-sec"><h6>内容摘要</h6><p>' + esc(p.summary) + "</p></div>" : "") +
       (p.fulltext ? '<div class="pd-sec"><h6>原文</h6><p style="white-space:pre-wrap">' + esc(p.fulltext) + "</p></div>" : "") +
-      (topics ? '<div class="pd-sec"><h6>主题</h6><p>' + topics + "</p></div>" : "");
+      (topics ? '<div class="pd-sec"><h6>主题</h6><p>' + topics + "</p></div>" : "") +
+      '<div class="pd-sec" style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-gold btn-sm" id="pdAsk">问这条政策</button><a class="btn btn-ghost btn-sm" href="apply.html">去申报助手匹配</a></div>';
     document.getElementById("pDrawer").classList.add("on");
     document.getElementById("pdMask").classList.add("on");
+    var askBtn = document.getElementById("pdAsk");
+    if (askBtn) askBtn.addEventListener("click", function () {
+      closePolicyDrawer();
+      var qq = "请解读政策《" + p.title + "》（" + (p.docNo || "无文号") + "，" + (p.org || "") + "）在基层落实中的要点。" + (p.applyPoint ? "材料所载要点：" + p.applyPoint : "");
+      if (window.MGC && MGC.ask) MGC.ask(qq);
+    });
   }
   function closePolicyDrawer() {
     document.getElementById("pDrawer").classList.remove("on");
