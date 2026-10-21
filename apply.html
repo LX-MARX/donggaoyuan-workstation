@@ -7,6 +7,7 @@
 <meta name="description" content="62 项可申报项目的智能匹配与流程导航：四条件环形筛选、材料清单、申报日历、材料合并器。">
 <link rel="icon" href="assets/img/logo.png">
 <link rel="stylesheet" href="assets/css/main.css">
+<link rel="stylesheet" href="assets/css/govdoc.css">
 <link rel="stylesheet" href="assets/css/gov-print.css">
 <style>
 /* 页头样式已上收 assets/css/main.css（.page-hero/.grid-bg/.hero-cols/.page-sub） */
@@ -99,6 +100,15 @@ input[type=range]{width:100%;accent-color:var(--gold)}
 .cycle-card .cy{font-family:var(--serif);font-size:18px;font-weight:800;color:var(--jade);margin-bottom:8px}
 .cycle-card .cd{font-size:13px;color:var(--ink-soft)}
 .cycle-card .tag2{display:inline-block;margin-top:12px;font-size:11.5px;letter-spacing:.08em;color:var(--gold);border:1px solid rgba(212,168,75,.5);border-radius:99px;padding:3px 12px}
+
+/* ---------- 匹配得分拆解 + 排除原因 ---------- */
+.score-parts{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.score-parts .sp{font-size:12px;color:#9FB4C8;border:1px solid rgba(212,168,75,.3);border-radius:99px;padding:3px 10px}
+.score-parts .sp b{color:var(--gold-warm);font-weight:600}
+.ex-sec{margin-top:26px}
+.ex-h{font-size:13px;color:#8FA8BF;margin-bottom:10px}
+.ex-item{display:grid;grid-template-columns:1fr auto;gap:8px 20px;padding:10px 0;border-bottom:1px dashed rgba(143,168,191,.2);font-size:13px}
+.ex-item .ex-w{color:#C8877A}
 </style>
 </head>
 <body data-page="apply">
@@ -166,6 +176,7 @@ input[type=range]{width:100%;accent-color:var(--gold)}
       <div class="rv">
         <div class="res-head"><span class="x" id="resX">62</span><span style="font-size:13px;color:#8FA8BF">匹配到的可申报项目（按匹配度排序）</span><span id="applySrc" style="font-size:12px;color:#9FB4C8;width:100%">数据来源：离线缓存模式</span></div>
         <div class="res-list" id="resList"></div>
+<div class="ex-sec" id="exList"></div>
       </div>
     </div>
   </div>
@@ -273,8 +284,9 @@ input[type=range]{width:100%;accent-color:var(--gold)}
 
   /* ---------- 匹配逻辑：主体/领域/资金为硬过滤，村庄特征决定排序 ---------- */
   function score(p) {
-    if (p.expired) return { s: 0, hard: false }; // 已过申报期项目不再展示
-    var s = 40, hard = true;
+    var parts = [], why = [];
+    if (p.expired) return { s: 0, hard: false, parts: parts, why: ["已过申报期"] }; // 已过申报期项目不再展示
+    var s = 40, hard = true; parts.push(["基础适配", 40]);
     /* 主体（硬条件）：主体不符的项目直接剔除 */
     if (state.role) {
       var ok = false, r5 = p.roles5 || [];
@@ -283,7 +295,7 @@ input[type=range]{width:100%;accent-color:var(--gold)}
       else if (state.role === "村两委") ok = r5.indexOf("村两委") >= 0;
       else if (state.role === "企业") ok = r5.indexOf("企业") >= 0;
       else if (state.role === "合作社") ok = r5.indexOf("村两委") >= 0 || r5.indexOf("农户") >= 0;
-      if (ok) s += 16; else hard = false;
+      if (ok) { s += 16; parts.push(["主体符合", 16]); } else { hard = false; why.push("申报主体不符"); }
     } else s += 10;
     /* 领域（硬条件） */
     if (state.type) {
@@ -291,24 +303,27 @@ input[type=range]{width:100%;accent-color:var(--gold)}
       if (state.type === "清洁能源专项") tk = /光伏|新能源|风电|驭风|能源/.test(hay);
       else if (state.type === "乡村振兴衔接资金") tk = !!p.link; // 数据层逐条标注的衔接资金适用项目
       else tk = p.type5 === state.type;
-      if (tk) s += 20; else hard = false;
+      if (tk) { s += 20; parts.push(["领域命中", 20]); } else { hard = false; why.push("需求领域不符"); }
     } else s += 10;
     /* 资金（硬条件）：按数据层资金档位过滤 */
     if (state.fund > 0) {
-      if (p.fundTier === FUND_LABELS[state.fund]) s += 12; else hard = false;
+      if (p.fundTier === FUND_LABELS[state.fund]) { s += 12; parts.push(["资金档位匹配", 12]); } else { hard = false; why.push("资金档位不符"); }
     } else s += 6;
     /* 村庄特征（软条件）：命中的特征越多排序越靠前 */
     if (state.feats.length) {
       var hit = state.feats.filter(function (f) { return (p.feats || []).indexOf(f) >= 0; }).length;
-      s += Math.min(hit * 8, 24);
+      var fp = Math.min(hit * 8, 24);
+      s += fp;
+      if (hit) parts.push(["村庄特征命中 " + hit + " 项", fp]);
     } else s += 6;
-    return { s: Math.min(Math.round(s), 100), hard: hard };
+    return { s: Math.min(Math.round(s), 100), hard: hard, parts: parts, why: why };
   }
   var orb = document.getElementById("orb"), resX = document.getElementById("resX"), resList = document.getElementById("resList");
   function render() {
-    var arr = projects.map(function (p) { var r = score(p); return { p: p, s: r.s, hard: r.hard }; })
-      .filter(function (x) { return x.hard; })
+    var scoredAll = projects.map(function (p) { var r = score(p); return { p: p, s: r.s, hard: r.hard, parts: r.parts, why: r.why }; });
+    var arr = scoredAll.filter(function (x) { return x.hard; })
       .sort(function (a, b) { return b.s - a.s; });
+    var excluded = scoredAll.filter(function (x) { return !x.hard; });
     orb.textContent = arr.length;
     var sz = Math.min(60 + arr.length * 1.6, 170);
     orb.style.width = sz + "px"; orb.style.height = sz + "px";
@@ -319,6 +334,7 @@ input[type=range]{width:100%;accent-color:var(--gold)}
         '<div class="rt"><span class="rt-l"><span class="pno">No.' + String(p.no).padStart(2, "0") + '</span><span class="rn">' + esc(p.name) + '</span></span><span class="sc">匹配度 ' + x.s + '%</span></div>' +
         '<div class="rm"><span>主管：' + esc(p.dept) + '</span><span>资金：' + esc(p.subsidy || "未标注") + '</span><span>窗口：' + esc(p.window || p.deadline) + '</span></div>' +
         '<div class="meter"><i style="width:' + x.s + '%"></i></div>' +
+        '<div class="score-parts">' + x.parts.map(function (pt) { return '<span class="sp">' + esc(pt[0]) + ' <b>+' + pt[1] + '</b></span>'; }).join("") + '</div>' +
         '<div class="acc-detail">' +
           '<div class="acc-sec"><h6>政策依据</h6><p>' + esc(p.basis) + '（' + esc(p.level) + '）</p></div>' +
           '<div class="acc-sec"><h6>申报条件自检（逐项勾选）</h6>' +
@@ -331,6 +347,16 @@ input[type=range]{width:100%;accent-color:var(--gold)}
             (window.WS.fav.has(p.no) ? "★ 已在申报计划（点击移除）" : "☆ 加入我的申报计划") + "</button>" +
         "</div></div>";
     }).join("") || '<div class="res-item"><div class="rn">当前条件下暂无匹配项目，请放宽筛选条件。</div></div>';
+    /* 被排除项：把「为什么没匹配上」摆出来 */
+    var exEl = document.getElementById("exList");
+    if (exEl) {
+      exEl.innerHTML = excluded.length
+        ? '<div class="ex-h">未纳入「' + excluded.length + ' 项」——排除原因如下：</div>' +
+          excluded.map(function (x) {
+            return '<div class="ex-item"><span class="ex-n">' + esc(x.p.name) + '</span><span class="ex-w">' + x.why.map(esc).join("；") + '</span></div>';
+          }).join("")
+        : "";
+    }
   }
   resList.addEventListener("click", function (e) {
     var favBtn = e.target.closest(".fav-btn");
@@ -497,7 +523,7 @@ input[type=range]{width:100%;accent-color:var(--gold)}
       sel.style.display = "none";
       swaps.push([sel, span]);
     });
-    window.WS.printZone("#matCard", "申报材料合并清单");
+    GovDoc.print({org:"东高垣数字治理工作站",docNo:"东高垣工作站〔2026〕2 号",title:"申报材料合并清单",el:"#matCard"});
     swaps.forEach(function (pair) { pair[0].style.display = ""; pair[1].remove(); });
   });
   document.getElementById("matList").addEventListener("change", function (e) {
@@ -517,5 +543,6 @@ input[type=range]{width:100%;accent-color:var(--gold)}
   syncProjects(); /* 首屏先出本地缓存，随后尝试切换云端实时数据 */
 })();
 </script>
+<script src="assets/js/govdoc.js"></script>
 </body>
 </html>

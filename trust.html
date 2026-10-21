@@ -7,6 +7,7 @@
 <meta name="description" content="村两委回函、企业应用证明、成果清单、治理模板下载中心与数据溯源表。">
 <link rel="icon" href="assets/img/logo.png">
 <link rel="stylesheet" href="assets/css/main.css">
+<link rel="stylesheet" href="assets/css/govdoc.css">
 <link rel="stylesheet" href="assets/css/gov-print.css">
 <style>
 /* ================= 回函仿纸卡 ================= */
@@ -216,7 +217,7 @@
     if (pb) {
       /* 只打印该张模板表：未展开也能打（打印样式强制 .pz-live 显示） */
       var card = pb.closest(".tpl-card"), t = TPLS[+card.getAttribute("data-i")];
-      window.WS.printZone(card.querySelector(".tpl-body"), t.id + " " + t.name);
+      GovDoc.print({org:"东高垣数字治理工作站",title:t.name,el:".tpl-body"});
       return;
     }
     var h = e.target.closest(".tpl-head");
@@ -225,5 +226,6 @@
   grid.querySelectorAll(".rv").forEach(function (el) { el.classList.add("on"); });
 })();
 </script>
+<script src="assets/js/govdoc.js"></script>
 </body>
 </html>

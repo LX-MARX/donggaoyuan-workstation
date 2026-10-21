@@ -7,6 +7,7 @@
 <meta name="description" content="119 条五级政策文本的结构化数据库与智能分析：检索控制台、3D 政策层级塔、演进时间轴、口径问答生成。">
 <link rel="icon" href="assets/img/logo.png">
 <link rel="stylesheet" href="assets/css/main.css">
+<link rel="stylesheet" href="assets/css/govdoc.css">
 <link rel="stylesheet" href="assets/css/gov-print.css">
 <style>
 /* 页头样式已上收 assets/css/main.css（.page-hero/.grid-bg/.hero-cols/.page-sub） */
@@ -119,6 +120,27 @@
 .qa-doc .seal{margin-top:28px;display:flex;justify-content:flex-end}
 .qa-doc .seal span{width:120px;height:120px;border:2px dashed rgba(200,75,63,.55);border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;color:rgba(200,75,63,.8);line-height:1.6;padding:12px}
 .qa-warn{margin-top:14px;font-size:12px;color:var(--cinnabar)}
+
+/* ---------- 政策详情抽屉 + 准实时刷新 ---------- */
+.pitem{cursor:pointer;transition:background .2s}
+.pitem:hover{background:rgba(212,168,75,.06)}
+.pdrawer{position:fixed;top:0;right:0;bottom:0;width:min(480px,94vw);z-index:80;
+  background:var(--jade);border-left:1px solid rgba(212,168,75,.35);box-shadow:-18px 0 50px rgba(0,0,0,.5);
+  transform:translateX(105%);transition:transform .4s cubic-bezier(.16,1,.3,1);display:flex;flex-direction:column}
+.pdrawer.on{transform:none}
+.pdrawer .pdh{flex:none;display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid rgba(212,168,75,.2)}
+.pdrawer .pdh b{font-size:14px;color:var(--gold-warm);letter-spacing:.1em}
+.pdrawer .pdc{background:none;border:1px solid rgba(240,215,140,.4);color:var(--moon);width:34px;height:34px;border-radius:6px;font-size:16px;cursor:pointer}
+.pdrawer .pdb{flex:1;overflow-y:auto;padding:22px 24px;font-size:14.5px;line-height:1.9}
+.pdrawer .pdb h3{font-family:var(--serif);font-size:19px;color:var(--moon);line-height:1.6;margin-bottom:14px}
+.pdrawer .pd-meta{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:13px;color:#8FA8BF;margin-bottom:16px}
+.pdrawer .pd-meta b{color:var(--gold-warm);font-weight:600}
+.pdrawer .pd-sec{border-top:1px dashed rgba(212,168,75,.25);padding-top:12px;margin-top:12px}
+.pdrawer .pd-sec h6{font-size:12px;letter-spacing:.16em;color:var(--gold);margin-bottom:8px}
+.pdmask{position:fixed;inset:0;z-index:75;background:rgba(3,8,16,.55);opacity:0;pointer-events:none;transition:opacity .3s}
+.pdmask.on{opacity:1;pointer-events:auto}
+.syncflag{display:inline-block;margin-left:10px;font-size:12px;color:#8FA8BF}
+.syncflag.flash{color:var(--gold-warm)}
 </style>
 </head>
 <body data-page="policy">
@@ -225,7 +247,7 @@
           <button class="btn btn-gold btn-sm" id="qaGen">生成</button>
         </div>
         <p class="qa-warn">提示：生成结果为答复草稿，仅供参考；口径问答书须经县级能源主管部门或发展改革部门核实并盖章后方可作为宣讲依据。</p>
-        <button class="btn btn-ghost btn-sm no-print" style="margin-top:18px;color:var(--gold);border-color:rgba(212,168,75,.55)" onclick="WS.printZone('#qaPrint','政策口径问答书')">打印为 A4 问答书</button>
+        <button class="btn btn-ghost btn-sm no-print" style="margin-top:18px;color:var(--gold);border-color:rgba(212,168,75,.55)" onclick="GovDoc.print({org:'东高垣数字治理工作站',docNo:'东高垣工作站〔2026〕1 号',title:'政策口径问答书',el:'#qaPrint'})">打印为 A4 问答书</button>
       </div>
       <div class="qa-doc gov-doc rv" id="qaPrint">
         <h4 class="gov-title">政策口径问答书</h4>
@@ -361,7 +383,8 @@
     resEl.innerHTML = list.slice(0, 120).map(function (p) {
       var y = yearOf(p);
       var chips = (p.topics || []).map(function (t) { return '<button class="ptag" type="button" data-topic="' + esc(t) + '">' + esc(t) + "</button>"; }).join("");
-      return '<div class="pitem"><div class="pt">' + esc(p.title) + '</div><div class="pm"><span class="lv">' + esc(p.level) + " · " + esc(p.level5) + "</span>" +
+      var pidx = policies.indexOf(p);
+      return '<div class="pitem" data-idx="' + pidx + '"><div class="pt">' + esc(p.title) + '</div><div class="pm"><span class="lv">' + esc(p.level) + " · " + esc(p.level5) + "</span>" +
         (y ? '<span class="lv">' + esc(y) + " 年</span>" : "") +
         "<span>" + esc(p.org) + "</span><span>" + esc(p.docNo || "无文号") + "</span><span>" + esc(p.date) + '</span></div><div class="ps">' + esc(p.applyPoint) + "</div>" +
         (chips ? '<div class="ptags">' + chips + "</div>" : "") + "</div>";
@@ -370,12 +393,70 @@
   }
   /* 点政策卡片上的主题 chip ＝ 选中该主题筛选（再点标签云里的「全部」取消） */
   resEl.addEventListener("click", function (e) {
-    var b = e.target.closest(".ptag"); if (!b) return;
-    var t = b.getAttribute("data-topic");
-    flt.topic = (flt.topic === t) ? "全部" : t;
-    renderTags();
-    render();
+    var b = e.target.closest(".ptag");
+    if (b) {
+      var tp = b.getAttribute("data-topic");
+      flt.topic = (flt.topic === tp) ? "全部" : tp;
+      renderTags();
+      render();
+      return;
+    }
+    var row = e.target.closest(".pitem");
+    if (row && row.dataset.idx != null) openPolicyDrawer(+row.dataset.idx);
   });
+  /* ---------- 政策详情抽屉 ---------- */
+  function openPolicyDrawer(i) {
+    var p = policies[i]; if (!p) return;
+    var topics = (p.topics || []).map(function (x) { return '<span class="ptag" style="cursor:default">' + esc(x) + "</span>"; }).join(" ");
+    document.getElementById("pdBody").innerHTML =
+      "<h3>" + esc(p.title) + "</h3>" +
+      '<div class="pd-meta">' +
+      "<b>效力层级</b><span>" + esc(p.level) + " · " + esc(p.level5 || "") + "</span>" +
+      "<b>发文机关</b><span>" + esc(p.org || "") + "</span>" +
+      "<b>发文字号</b><span>" + esc(p.docNo || "无文号") + "</span>" +
+      "<b>成文日期</b><span>" + esc(p.date || "") + "</span>" +
+      "</div>" +
+      (p.applyPoint ? '<div class="pd-sec"><h6>基层落实要点</h6><p>' + esc(p.applyPoint) + "</p></div>" : "") +
+      (p.summary ? '<div class="pd-sec"><h6>内容摘要</h6><p>' + esc(p.summary) + "</p></div>" : "") +
+      (p.fulltext ? '<div class="pd-sec"><h6>原文</h6><p style="white-space:pre-wrap">' + esc(p.fulltext) + "</p></div>" : "") +
+      (topics ? '<div class="pd-sec"><h6>主题</h6><p>' + topics + "</p></div>" : "");
+    document.getElementById("pDrawer").classList.add("on");
+    document.getElementById("pdMask").classList.add("on");
+  }
+  function closePolicyDrawer() {
+    document.getElementById("pDrawer").classList.remove("on");
+    document.getElementById("pdMask").classList.remove("on");
+  }
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closePolicyDrawer(); });
+  /* 抽屉 DOM 在本内联脚本之后的 body 末尾，监听到 DOMContentLoaded 再挂 */
+  document.addEventListener("DOMContentLoaded", function () {
+    var c1 = document.getElementById("pdClose"), m1 = document.getElementById("pdMask");
+    if (c1) c1.addEventListener("click", closePolicyDrawer);
+    if (m1) m1.addEventListener("click", closePolicyDrawer);
+  });
+
+  /* ---------- 准实时：每 90 秒回源同步，数据有变原位刷新并提示 ---------- */
+  var lastCount = -1;
+  setInterval(function () {
+    if (!window.MG || !MG.wsPolicies) return;
+    Object.keys(cloudCache).forEach(function (k) { delete cloudCache[k]; });
+    var before = D.policies.length;
+    syncPolicies();
+    setTimeout(function () {
+      var flag = statEl.querySelector(".syncflag");
+      if (!flag) {
+        flag = document.createElement("span");
+        flag.className = "syncflag";
+        statEl.appendChild(flag);
+      }
+      var now = new Date();
+      flag.textContent = "已同步 " + ("0" + now.getHours()).slice(-2) + ":" + ("0" + now.getMinutes()).slice(-2);
+      if (D.policies.length !== before) {
+        flag.classList.add("flash");
+        setTimeout(function () { flag.classList.remove("flash"); }, 2400);
+      }
+    }, 1200);
+  }, 90000);
   renderTags();
   render();
   syncPolicies(); /* 首屏先出本地缓存，随后尝试切换云端实时数据 */
@@ -498,5 +579,12 @@
   presets.querySelector(".qa-preset").classList.add("on");
 })();
 </script>
+
+<div class="pdmask" id="pdMask"></div>
+<aside class="pdrawer" id="pDrawer" aria-label="政策详情">
+  <div class="pdh"><b>政策详情</b><button class="pdc" id="pdClose" aria-label="关闭">×</button></div>
+  <div class="pdb" id="pdBody"></div>
+</aside>
+<script src="assets/js/govdoc.js"></script>
 </body>
 </html>

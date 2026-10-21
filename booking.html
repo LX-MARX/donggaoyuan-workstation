@@ -7,6 +7,7 @@
 <meta name="description" content="预约驻村调研：在线问卷、电话、邮箱三种方式。服务范围全国，需提前 15—30 天预约。">
 <link rel="icon" href="assets/img/logo.png">
 <link rel="stylesheet" href="assets/css/main.css">
+<link rel="stylesheet" href="assets/css/govdoc.css">
 <link rel="stylesheet" href="assets/css/gov-print.css">
 <style>
 .book-hero{min-height:52vh;display:flex;align-items:center;background:var(--abyss);position:relative;overflow:hidden;padding:150px 0 60px;text-align:center}
@@ -222,9 +223,10 @@
     document.getElementById("rcOffline").style.display = r.online ? "none" : "block";
     document.getElementById("rcStamp").textContent = "提交时间：" + r.stamp;
     document.getElementById("rcDate").textContent = r.date;
-    window.WS.printZone(document.getElementById("receipt"));
+    GovDoc.print({org:"东高垣数字治理工作站",title:"预约登记凭证",el:"#receipt"});
   });
 })();
 </script>
+<script src="assets/js/govdoc.js"></script>
 </body>
 </html>
