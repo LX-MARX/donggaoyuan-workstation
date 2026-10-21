@@ -43,11 +43,10 @@ input[type=range]{width:100%;accent-color:var(--gold)}
 .res-item{background:var(--panel-bg);border:1px solid var(--panel-bd);border-radius:14px;padding:18px 22px;cursor:pointer;transition:all .3s;color:var(--panel-fg)}
 .res-item:hover{border-color:rgba(212,168,75,.65);box-shadow:0 10px 26px var(--panel-bd)}
 .res-item .rt{display:flex;justify-content:space-between;gap:14px;align-items:baseline;flex-wrap:wrap}
-.res-item .rn{font-size:16px;font-weight:800;color:#12233A}
-.pno{display:inline-block;background:linear-gradient(135deg,#D4A84B,#B8912F);color:#23180A;border-radius:6px;padding:2px 10px;font-size:13px;font-weight:800;margin-right:8px}
-/* 白卡片上的分数用深金：亮金 #D4A84B 白底对比度只有 2.2:1，眯眼都看不清 */
-.res-item .sc{font-family:var(--mono);font-size:13px;color:#8A6A2A;font-weight:700;white-space:nowrap}
-.res-item .rm{font-size:12.5px;color:#42566C;margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
+.res-item .rn{font-size:16px;font-weight:800;color:var(--fg)}
+.pno{display:inline-block;background:var(--gold-soft);color:#23180A;border-radius:3px;padding:2px 10px;font-size:13px;font-weight:800;margin-right:8px}
+.res-item .sc{font-family:var(--mono);font-size:13px;color:var(--gold-soft);font-weight:700;white-space:nowrap}
+.res-item .rm{font-size:12.5px;color:var(--sub);margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
 .meter{height:5px;background:var(--panel-bd);border-radius:3px;margin-top:10px;overflow:hidden}
 .meter i{display:block;height:100%;background:var(--gold-grad);border-radius:3px}
 
@@ -55,7 +54,7 @@ input[type=range]{width:100%;accent-color:var(--gold)}
 .acc-detail{display:none;margin-top:14px;border-top:1px dashed var(--panel-bd);padding-top:16px}
 .res-item.open .acc-detail{display:block}
 .acc-sec{margin-bottom:16px}
-.acc-sec h6{font-size:11.5px;letter-spacing:.2em;color:#12233A;margin-bottom:8px;font-weight:800}
+.acc-sec h6{font-size:11.5px;letter-spacing:.2em;color:var(--gold-soft);margin-bottom:8px;font-weight:800}
 .acc-sec p,.acc-sec li{font-size:13px;color:var(--panel-fg)}
 .acc-sec ul{list-style:none}
 .acc-sec li{padding:4px 0 4px 18px;position:relative}

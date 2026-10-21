@@ -267,7 +267,7 @@ const Dashboard = {
         pts.map(function (p, i) {
           var c = i === last ? "#C84B3F" : "#D4A84B";
           return '<circle cx="' + p.x + '" cy="' + p.y + '" r="6" fill="' + c + '"/>' +
-            '<text x="' + p.x + '" y="' + (p.y - 26) + '" text-anchor="middle" font-size="22" font-weight="700" fill="' + (i === last ? "#C84B3F" : "#12233A") + '" font-family="monospace">' + esc(p.r.value_num) + "</text>" +
+            '<text x="' + p.x + '" y="' + (p.y - 26) + '" text-anchor="middle" font-size="22" font-weight="700" fill="' + (i === last ? "#C84B3F" : "#F2F4F7") + '" font-family="monospace">' + esc(p.r.value_num) + "</text>" +
             '<text x="' + p.x + '" y="316" text-anchor="middle" font-size="14" fill="#4A6076">' + esc(p.r.label) + "</text>";
         }).join("") +
         '<text x="' + pts[maxI].x + '" y="' + (pts[maxI].y + 30) + '" text-anchor="middle" font-size="12" fill="#E8C98A">峰值</text>' +
