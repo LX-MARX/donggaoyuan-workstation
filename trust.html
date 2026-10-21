@@ -14,7 +14,7 @@
 .letter{
   position:relative;max-width:860px;margin:0 auto;background:#FDFBF3;color:#22303E;
   border:1px solid rgba(138,106,42,.4);border-radius:6px;padding:56px 62px 48px;
-  box-shadow:0 24px 60px rgba(18,35,58,.18),inset 0 0 80px rgba(212,168,75,.06);
+  box-shadow:0 24px 60px var(--panel-bd),inset 0 0 80px rgba(212,168,75,.06);
   background-image:repeating-linear-gradient(180deg,rgba(138,106,42,.03) 0 1px,transparent 1px 8px);
 }
 .corner{position:absolute;width:34px;height:34px;border:2px solid var(--gold)}
@@ -35,7 +35,7 @@
 @media(max-width:640px){.letter{padding:38px 26px}.seal-stamp{position:static;margin:24px auto 0;transform:rotate(-6deg)}}
 
 /* ================= 成果清单 ================= */
-.ach-item{display:flex;gap:24px;padding:26px 0;border-bottom:1px solid rgba(18,35,58,.12);align-items:flex-start}
+.ach-item{display:flex;gap:24px;padding:26px 0;border-bottom:1px solid var(--panel-bd);align-items:flex-start}
 .ach-item .no{font-family:var(--mono);font-size:30px;font-weight:700;color:var(--gold);line-height:1;flex-shrink:0;width:56px}
 .ach-item h4{font-family:var(--serif);font-size:18px;color:var(--jade);font-weight:800;margin-bottom:6px}
 .ach-item p{font-size:13.5px;color:var(--ink-soft)}
